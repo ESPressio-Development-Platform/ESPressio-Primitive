@@ -43,6 +43,13 @@ The constants and range helpers live in `ESPressio_PrimitiveFamilyRegistry.hpp`.
 
 ESPressio-defined families are allocated individually from this central registry. Repositories are not given arbitrary numeric blocks, and application/private identifiers are not derived from names or hashes.
 
+| Identifier | Stable ESPressio family |
+| --- | --- |
+| `0x0001` | Mesh Control |
+| `0x0002` | Command |
+| `0x0003` | Event |
+| `0x0004` | State |
+
 ## Protocol-version compatibility
 
 `PrimitiveProtocolVersion` is a compact scalar revision that evolves independently for each primitive family. `PrimitiveProtocolVersionRange` represents one inclusive supported range and can select the highest mutually supported revision between two peers.

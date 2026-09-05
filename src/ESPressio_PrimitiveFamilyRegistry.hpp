@@ -24,6 +24,18 @@ inline constexpr PrimitiveFamilyId ApplicationPrivateLast = 0xFFFEU;
 /// <summary>Permanently reserved all-bits-set sentinel.</summary>
 inline constexpr PrimitiveFamilyId ReservedSentinel = 0xFFFFU;
 
+/// <summary>ESPressio Mesh control-plane family.</summary>
+inline constexpr PrimitiveFamilyId MeshControl = 0x0001U;
+
+/// <summary>ESPressio Command semantic primitive family.</summary>
+inline constexpr PrimitiveFamilyId Command = 0x0002U;
+
+/// <summary>ESPressio Event semantic primitive family.</summary>
+inline constexpr PrimitiveFamilyId Event = 0x0003U;
+
+/// <summary>ESPressio State semantic primitive family.</summary>
+inline constexpr PrimitiveFamilyId State = 0x0004U;
+
 /// <summary>Indicates whether an identifier is in the ESPressio-defined namespace.</summary>
 constexpr bool IsESPressioDefined(PrimitiveFamilyId id) noexcept {
     return id >= ESPressioDefinedFirst && id <= ESPressioDefinedLast;
@@ -39,9 +51,9 @@ constexpr bool IsUsable(PrimitiveFamilyId id) noexcept {
     return IsESPressioDefined(id) || IsApplicationPrivate(id);
 }
 
-// Stable ESPressio-defined family allocations are added here individually as
-// they are introduced. Repositories must not invent private blocks or derive
-// family identifiers from names/hashes.
+static_assert(MeshControl != Command && MeshControl != Event && MeshControl != State &&
+              Command != Event && Command != State && Event != State,
+              "Every ESPressio-defined primitive family allocation must be unique.");
 
 } // namespace FamilyIds
 } // namespace Primitive

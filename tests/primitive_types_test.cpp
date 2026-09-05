@@ -23,6 +23,14 @@ int main() {
     assert(FamilyIds::ApplicationPrivateFirst == 0x8000U);
     assert(FamilyIds::ApplicationPrivateLast == 0xFFFEU);
     assert(FamilyIds::ReservedSentinel == 0xFFFFU);
+    assert(FamilyIds::MeshControl == 0x0001U);
+    assert(FamilyIds::Command == 0x0002U);
+    assert(FamilyIds::Event == 0x0003U);
+    assert(FamilyIds::State == 0x0004U);
+    assert(FamilyIds::IsESPressioDefined(FamilyIds::MeshControl));
+    assert(FamilyIds::IsESPressioDefined(FamilyIds::Command));
+    assert(FamilyIds::IsESPressioDefined(FamilyIds::Event));
+    assert(FamilyIds::IsESPressioDefined(FamilyIds::State));
     assert(FamilyIds::IsESPressioDefined(0x0001U));
     assert(!FamilyIds::IsESPressioDefined(0x8000U));
     assert(FamilyIds::IsApplicationPrivate(0x8000U));
