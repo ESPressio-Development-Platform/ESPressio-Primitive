@@ -28,6 +28,8 @@ const CorrelationId correlation = CorrelationId::FromMessage(messageId);
 
 Both values use zero as Invalid/Unspecified.
 
+`ConceptualMessageIdGenerator` provides the dependency-neutral issuance mechanism. It is a non-wrapping monotonic sequence scoped by the authenticated source identity and source incarnation owned by the surrounding composition. A continuing incarnation must restore its persisted high-water value without regression; a newly authenticated incarnation explicitly resets the sequence and begins at `1`. The generator does not authenticate sources, allocate incarnations or claim that the scalar is globally unique without that external scope.
+
 ## Primitive family namespace
 
 `PrimitiveFamilyId` is an exact 16-bit wire/API value. The namespace is permanently partitioned as follows:

@@ -1,6 +1,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 #include "ESPressio_Primitive.hpp"
@@ -44,6 +45,25 @@ int main() {
     const CorrelationId correlation = CorrelationId::FromMessage(message);
     assert(static_cast<bool>(correlation));
     assert(correlation.Value() == message.Value());
+
+    ConceptualMessageIdGenerator generator;
+    ConceptualMessageId issued;
+    assert(generator.TryIssue(issued));
+    assert(issued.Value() == 1U);
+    assert(generator.TryIssue(issued));
+    assert(issued.Value() == 2U);
+    assert(generator.RestoreHighWater(ConceptualMessageId(41U)));
+    assert(!generator.RestoreHighWater(ConceptualMessageId(40U)));
+    assert(generator.TryIssue(issued));
+    assert(issued.Value() == 42U);
+    assert(generator.RestoreHighWater(
+        ConceptualMessageId(std::numeric_limits<std::uint64_t>::max())));
+    assert(!generator.TryIssue(issued));
+    assert(issued.Value() == 42U);
+    generator.ResetForNewSourceIncarnation();
+    assert(!static_cast<bool>(generator.HighWater()));
+    assert(generator.TryIssue(issued));
+    assert(issued.Value() == 1U);
 
     PrimitiveProtocolVersion selected = 0;
     const PrimitiveProtocolVersionRange local{1, 3};
