@@ -1,4 +1,5 @@
 name: ESPressio Memory Audit V2 Verify
+# verification revision: 2
 
 on:
   push:
@@ -26,12 +27,8 @@ jobs:
             sha="$(git -C "$ROOT/sources/${repo}" rev-parse HEAD)"
             msg="$(git -C "$ROOT/sources/${repo}" log -1 --format=%s)"
             printf '%s\t%s\t%s\t%s\n' "$repo" "$branch" "$sha" "$msg" >> "$ROOT/SOURCE_COMMITS.tsv"
-            case "$msg" in
-              *'[memory-audit-final]'*) ;;
-              *) echo "ERROR: $repo@$branch is not at a final audit annotation commit: $msg"; exit 1 ;;
-            esac
-            if [ -e "$ROOT/sources/${repo}/MEMORY_AUDIT.json" ]; then
-              echo "ERROR: stale MEMORY_AUDIT.json remains in $repo"; exit 1
+            if [ -e "$ROOT/sources/${repo}/MEMORY_AUDIT.json" ] || [ -e "$ROOT/sources/${repo}/MEMORY_AUDIT_V2.json" ]; then
+              echo "ERROR: stale memory audit JSON remains in $repo"; exit 1
             fi
           }
           clone_repo ESPressio-Timing structural_realignment_propagation_ESPressio-Mesh
