@@ -1,6 +1,6 @@
 {
   "schema": "espressio-memory-audit-v1",
-  "pass": 1,
+  "pass": 2,
   "repository": "ESPressio-Primitive",
   "branch": "structural_realignment_propagation_ESPressio-Mesh",
   "basis": {
@@ -10,14 +10,6 @@
     "notes": "GNU libstdc++ control-block sizes are reference values; target/compiler sizeof is authoritative for ABI-sensitive and opaque types."
   },
   "missing_external_catalogs": [
-    "ESPressio-Timing",
-    "ESPressio-Serializable",
-    "ESPressio-Observable",
-    "ESPressio-Threads",
-    "ESPressio-Event",
-    "ESPressio-Mesh",
-    "ESPressio-Sockets",
-    "ESPressio-Serial",
     "ESPressio-WiFi",
     "ESPressio-Logging",
     "ESPressio-Command",
