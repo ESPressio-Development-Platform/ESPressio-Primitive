@@ -15,12 +15,15 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p sources
+          : > SOURCE_COMMITS.tsv
           clone_repo() {
             repo="$1"
             branch="$2"
             git clone --depth 1 --branch "$branch" \
               "https://github.com/ESPressio-Development-Platform/${repo}.git" \
               "sources/${repo}"
+            sha="$(git -C "sources/${repo}" rev-parse HEAD)"
+            printf '%s\t%s\t%s\n' "$repo" "$branch" "$sha" >> SOURCE_COMMITS.tsv
             rm -rf "sources/${repo}/.git"
           }
 
@@ -46,13 +49,10 @@ jobs:
           clone_repo ESPressio-State structural_realignment_propagation_ESPressio-Mesh
           clone_repo ESPressio-Units structural_realignment
           clone_repo ESPressio-Web structural_realignment
-
-          # Resolver-only libraries: used to account nested/inherited ESPressio memory,
-          # but not part of the annotation target set for this tranche.
           clone_repo ESPressio-System structural_realignment_propagation_ESPressio-Mesh
           clone_repo ESPressio-Task structural_realignment
 
-          tar -czf espressio-platform-sources.tar.gz sources
+          tar -czf espressio-platform-sources.tar.gz sources SOURCE_COMMITS.tsv
 
       - name: Upload source bundle
         uses: actions/upload-artifact@v4
