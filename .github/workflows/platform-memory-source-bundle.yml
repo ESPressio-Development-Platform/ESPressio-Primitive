@@ -1,0 +1,57 @@
+name: ESPressio Platform Memory Source Bundle
+
+on:
+  push:
+    branches:
+      - structural_realignment_propagation_ESPressio-Mesh
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout requested source set
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p sources
+          clone_repo() {
+            repo="$1"
+            branch="$2"
+            git clone --depth 1 --branch "$branch" \
+              "https://github.com/ESPressio-Development-Platform/${repo}.git" \
+              "sources/${repo}"
+            rm -rf "sources/${repo}/.git"
+          }
+
+          clone_repo ESPressio-Timing structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Serializable structural_realignment
+          clone_repo ESPressio-Observable structural_realignment
+          clone_repo ESPressio-Threads structural_realignment
+          clone_repo ESPressio-Event structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Mesh structural_realignment_propagation
+          clone_repo ESPressio-Sockets structural_realignment
+          clone_repo ESPressio-Serial structural_realignment
+          clone_repo ESPressio-WiFi structural_realignment
+          clone_repo ESPressio-Logging structural_realignment
+          clone_repo ESPressio-Command structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-ESP32 structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Lua main
+          clone_repo ESPressio-MeshAdapters structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-NRF24 structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Persistence structural_realignment
+          clone_repo ESPressio-Primitive structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Radio structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Security structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-State structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Units structural_realignment
+          clone_repo ESPressio-Web structural_realignment
+
+          tar -czf espressio-platform-sources.tar.gz sources
+
+      - name: Upload source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: espressio-platform-sources
+          path: espressio-platform-sources.tar.gz
+          retention-days: 1
