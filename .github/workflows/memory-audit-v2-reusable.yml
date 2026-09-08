@@ -93,7 +93,7 @@ jobs:
             --annotate \
             --report /tmp/MEMORY_AUDIT_V2.json
 
-          rsync -a --delete-excluded \
+          rsync -a \
             --exclude='.git/' --exclude='.github/' \
             "/tmp/espressio-memory-sources/${AUDIT_REPO}/" "$GITHUB_WORKSPACE/"
           rm -f "$GITHUB_WORKSPACE/MEMORY_AUDIT.json" "$GITHUB_WORKSPACE/MEMORY_AUDIT_V2.json"
