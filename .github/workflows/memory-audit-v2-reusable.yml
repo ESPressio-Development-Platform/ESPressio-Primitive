@@ -86,6 +86,21 @@ jobs:
             curl -fsSL "https://raw.githubusercontent.com/ESPressio-Development-Platform/ESPressio-Primitive/structural_realignment_propagation_ESPressio-Mesh/.github/audit/espressio_memory_audit_v2.${part}"
           done > /tmp/espressio_memory_audit_v2.py.gz.b64
           base64 -d /tmp/espressio_memory_audit_v2.py.gz.b64 | gunzip > /tmp/espressio_memory_audit_v2.py
+
+          # V2.1: nested types qualified by an unresolved template parameter remain
+          # dependent storage (e.g. TLockPolicy::Mutex), rather than being resolved
+          # by short name to an unrelated concrete type elsewhere in the platform.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('/tmp/espressio_memory_audit_v2.py')
+          s = p.read_text()
+          old = """        if t=='function pointer' or re.search(r'\\(\\s*\\*',t) or '*' in t or '&' in t:return Metric(4,4,[],confidence='high')\n        if t in FUNDAMENTAL:\n"""
+          new = """        if t=='function pointer' or re.search(r'\\(\\s*\\*',t) or '*' in t or '&' in t:return Metric(4,4,[],confidence='high')\n        # A nested type qualified by an unresolved template parameter is itself dependent.\n        cctx=ctx\n        unresolved_template_params=set()\n        while cctx:\n            unresolved_template_params.update(p for p in cctx.template_params if p not in substitutions)\n            cctx=cctx.parent\n        if any(t.startswith(p + '::') for p in unresolved_template_params):\n            return Metric(None,4,[],f'sizeof({t})','high')\n        if t in FUNDAMENTAL:\n"""
+          if old not in s:
+              raise SystemExit('dependent-template patch anchor not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
           python3 -m py_compile /tmp/espressio_memory_audit_v2.py
           python3 /tmp/espressio_memory_audit_v2.py \
             --root /tmp/espressio-memory-sources \
