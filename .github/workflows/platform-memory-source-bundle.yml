@@ -47,6 +47,11 @@ jobs:
           clone_repo ESPressio-Units structural_realignment
           clone_repo ESPressio-Web structural_realignment
 
+          # Resolver-only libraries: used to account nested/inherited ESPressio memory,
+          # but not part of the annotation target set for this tranche.
+          clone_repo ESPressio-System structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Task structural_realignment
+
           tar -czf espressio-platform-sources.tar.gz sources
 
       - name: Upload source bundle
