@@ -1,0 +1,113 @@
+name: ESPressio Memory Audit V2
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  annotate-memory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Build whole-platform source graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUDIT_REPO="${GITHUB_REPOSITORY#*/}"
+          AUDIT_BRANCH="${GITHUB_REF_NAME}"
+          case "${AUDIT_REPO}:${AUDIT_BRANCH}" in
+            ESPressio-Timing:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Serializable:structural_realignment|\
+            ESPressio-Observable:structural_realignment|\
+            ESPressio-Threads:structural_realignment|\
+            ESPressio-Event:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Mesh:structural_realignment_propagation|\
+            ESPressio-Sockets:structural_realignment|\
+            ESPressio-Serial:structural_realignment|\
+            ESPressio-WiFi:structural_realignment|\
+            ESPressio-Logging:structural_realignment|\
+            ESPressio-Command:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-ESP32:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Lua:main|\
+            ESPressio-MeshAdapters:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-NRF24:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Persistence:structural_realignment|\
+            ESPressio-Primitive:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Radio:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Security:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-State:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Units:structural_realignment|\
+            ESPressio-Web:structural_realignment|\
+            ESPressio-System:structural_realignment_propagation_ESPressio-Mesh|\
+            ESPressio-Task:structural_realignment) ;;
+            *) echo "Not an audited repository/branch; exiting."; exit 0 ;;
+          esac
+
+          rm -rf /tmp/espressio-memory-sources
+          mkdir -p /tmp/espressio-memory-sources
+          clone_repo() {
+            repo="$1"; branch="$2"
+            git clone --quiet --depth 1 --branch "$branch" \
+              "https://github.com/ESPressio-Development-Platform/${repo}.git" \
+              "/tmp/espressio-memory-sources/${repo}"
+          }
+          clone_repo ESPressio-Timing structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Serializable structural_realignment
+          clone_repo ESPressio-Observable structural_realignment
+          clone_repo ESPressio-Threads structural_realignment
+          clone_repo ESPressio-Event structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Mesh structural_realignment_propagation
+          clone_repo ESPressio-Sockets structural_realignment
+          clone_repo ESPressio-Serial structural_realignment
+          clone_repo ESPressio-WiFi structural_realignment
+          clone_repo ESPressio-Logging structural_realignment
+          clone_repo ESPressio-Command structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-ESP32 structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Lua main
+          clone_repo ESPressio-MeshAdapters structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-NRF24 structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Persistence structural_realignment
+          clone_repo ESPressio-Primitive structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Radio structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Security structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-State structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Units structural_realignment
+          clone_repo ESPressio-Web structural_realignment
+          clone_repo ESPressio-System structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Task structural_realignment
+
+          for part in 00 01 02 03; do
+            curl -fsSL "https://raw.githubusercontent.com/ESPressio-Development-Platform/ESPressio-Primitive/structural_realignment_propagation_ESPressio-Mesh/.github/audit/espressio_memory_audit_v2.${part}"
+          done > /tmp/espressio_memory_audit_v2.py.gz.b64
+          base64 -d /tmp/espressio_memory_audit_v2.py.gz.b64 | gunzip > /tmp/espressio_memory_audit_v2.py
+          python3 -m py_compile /tmp/espressio_memory_audit_v2.py
+          python3 /tmp/espressio_memory_audit_v2.py \
+            --root /tmp/espressio-memory-sources \
+            --repo "$AUDIT_REPO" \
+            --annotate \
+            --report /tmp/MEMORY_AUDIT_V2.json
+
+          rsync -a --delete-excluded \
+            --exclude='.git/' --exclude='.github/' \
+            "/tmp/espressio-memory-sources/${AUDIT_REPO}/" "$GITHUB_WORKSPACE/"
+          rm -f "$GITHUB_WORKSPACE/MEMORY_AUDIT.json" "$GITHUB_WORKSPACE/MEMORY_AUDIT_V2.json"
+
+      - name: Commit validated annotations
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No annotation changes required."
+            exit 0
+          fi
+          git commit -m "docs: annotate type memory footprints [memory-audit-final]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
