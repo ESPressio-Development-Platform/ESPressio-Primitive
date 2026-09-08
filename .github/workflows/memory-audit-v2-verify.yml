@@ -1,0 +1,126 @@
+name: ESPressio Memory Audit V2 Verify
+
+on:
+  push:
+    paths:
+      - .github/workflows/memory-audit-v2-verify.yml
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone audited branch tips
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/espressio-memory-verify
+          rm -rf "$ROOT"
+          mkdir -p "$ROOT/sources"
+          : > "$ROOT/SOURCE_COMMITS.tsv"
+          clone_repo() {
+            repo="$1"; branch="$2"
+            git clone --quiet --depth 1 --branch "$branch" \
+              "https://github.com/ESPressio-Development-Platform/${repo}.git" \
+              "$ROOT/sources/${repo}"
+            sha="$(git -C "$ROOT/sources/${repo}" rev-parse HEAD)"
+            msg="$(git -C "$ROOT/sources/${repo}" log -1 --format=%s)"
+            printf '%s\t%s\t%s\t%s\n' "$repo" "$branch" "$sha" "$msg" >> "$ROOT/SOURCE_COMMITS.tsv"
+            case "$msg" in
+              *'[memory-audit-final]'*) ;;
+              *) echo "ERROR: $repo@$branch is not at a final audit annotation commit: $msg"; exit 1 ;;
+            esac
+            if [ -e "$ROOT/sources/${repo}/MEMORY_AUDIT.json" ]; then
+              echo "ERROR: stale MEMORY_AUDIT.json remains in $repo"; exit 1
+            fi
+          }
+          clone_repo ESPressio-Timing structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Serializable structural_realignment
+          clone_repo ESPressio-Observable structural_realignment
+          clone_repo ESPressio-Threads structural_realignment
+          clone_repo ESPressio-Event structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Mesh structural_realignment_propagation
+          clone_repo ESPressio-Sockets structural_realignment
+          clone_repo ESPressio-Serial structural_realignment
+          clone_repo ESPressio-WiFi structural_realignment
+          clone_repo ESPressio-Logging structural_realignment
+          clone_repo ESPressio-Command structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-ESP32 structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Lua main
+          clone_repo ESPressio-MeshAdapters structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-NRF24 structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Persistence structural_realignment
+          clone_repo ESPressio-Primitive structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Radio structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Security structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-State structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Units structural_realignment
+          clone_repo ESPressio-Web structural_realignment
+          clone_repo ESPressio-System structural_realignment_propagation_ESPressio-Mesh
+          clone_repo ESPressio-Task structural_realignment
+
+      - name: Reconstruct corrected analyzer
+        shell: bash
+        run: |
+          set -euo pipefail
+          for part in 00 01 02 03; do
+            curl -fsSL "https://raw.githubusercontent.com/ESPressio-Development-Platform/ESPressio-Primitive/structural_realignment_propagation_ESPressio-Mesh/.github/audit/espressio_memory_audit_v2.${part}"
+          done > /tmp/espressio_memory_audit_v2.py.gz.b64
+          base64 -d /tmp/espressio_memory_audit_v2.py.gz.b64 | gunzip > /tmp/espressio_memory_audit_v2.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('/tmp/espressio_memory_audit_v2.py')
+          s=p.read_text()
+          old="""        if t=='function pointer' or re.search(r'\\(\\s*\\*',t) or '*' in t or '&' in t:return Metric(4,4,[],confidence='high')\n        if t in FUNDAMENTAL:\n"""
+          new="""        if t=='function pointer' or re.search(r'\\(\\s*\\*',t) or '*' in t or '&' in t:return Metric(4,4,[],confidence='high')\n        # A nested type qualified by an unresolved template parameter is itself dependent.\n        cctx=ctx\n        unresolved_template_params=set()\n        while cctx:\n            unresolved_template_params.update(p for p in cctx.template_params if p not in substitutions)\n            cctx=cctx.parent\n        if any(t.startswith(p + '::') for p in unresolved_template_params):\n            return Metric(None,4,[],f'sizeof({t})','high')\n        if t in FUNDAMENTAL:\n"""
+          if old not in s:
+              raise SystemExit('dependent-template patch anchor not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          python3 -m py_compile /tmp/espressio_memory_audit_v2.py
+
+      - name: Verify catalog and annotation idempotence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/espressio-memory-verify
+          python3 /tmp/espressio_memory_audit_v2.py \
+            --root "$ROOT/sources" \
+            --report "$ROOT/ESPressio_Memory_Audit_Catalog.json" \
+            --summary | tee "$ROOT/SUMMARY.txt"
+          python3 - <<'PY'
+          import json
+          p='/tmp/espressio-memory-verify/ESPressio_Memory_Audit_Catalog.json'
+          d=json.load(open(p))
+          assert d['type_count'] == 2191, d['type_count']
+          numeric=sum(t.get('fixed_bytes') is not None for t in d['types'])
+          symbolic=len(d['types'])-numeric
+          assert numeric == 1976, numeric
+          assert symbolic == 215, symbolic
+          assert not any(t.get('fixed_bytes') == 0 for t in d['types']), 'zero-byte record detected'
+          assert sum(bool(t.get('requires_preallocation')) for t in d['types']) == 24
+          PY
+          while IFS=$'\t' read -r repo branch sha msg; do
+            python3 /tmp/espressio_memory_audit_v2.py \
+              --root "$ROOT/sources" --repo "$repo" --annotate \
+              --report "/tmp/${repo}.json" >/dev/null
+            if ! git -C "$ROOT/sources/$repo" diff --quiet; then
+              echo "ERROR: annotation output is not idempotent for $repo"
+              git -C "$ROOT/sources/$repo" diff --stat
+              exit 1
+            fi
+          done < "$ROOT/SOURCE_COMMITS.tsv"
+          if grep -R --include='*.h' --include='*.hpp' --include='*.cpp' --include='*.cc' --include='*.cxx' \
+             -F 'TLockPolicy::Mutex): 1 bytes' "$ROOT/sources"; then
+            echo 'ERROR: stale dependent-template undercount remains'; exit 1
+          fi
+          echo 'All 24 repository tips are annotation-idempotent.' | tee -a "$ROOT/SUMMARY.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: espressio-memory-audit-v2-verification
+          path: |
+            /tmp/espressio-memory-verify/SOURCE_COMMITS.tsv
+            /tmp/espressio-memory-verify/SUMMARY.txt
+            /tmp/espressio-memory-verify/ESPressio_Memory_Audit_Catalog.json
+          retention-days: 2
