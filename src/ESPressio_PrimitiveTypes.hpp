@@ -20,14 +20,7 @@ using PrimitiveProtocolVersion = std::uint16_t;
 /// The same conceptual message keeps this identifier across serialization,
 /// transports, Mesh routes and retries. Zero is Invalid/Unspecified.
 /// </remarks>
-/**
- * ESPressio Memory Audit
- * Members:
- * - _value (std::uint64_t): 8 bytes [0 bytes dynamic allocation]
- * Total Memory: 8 bytes [0 bytes dynamic allocation]
- * Basis: ESP32/Xtensa ILP32 reference ABI (4-byte pointers/size_t); ESPressio stateful allocators/deleters included; ABI-sensitive STL/platform internals are identified explicitly.
- * End ESPressio Memory Audit
- */
+
 class ConceptualMessageId final {
     std::uint64_t _value{0};
 
@@ -62,14 +55,7 @@ public:
 /// even when an application intentionally copies the numeric value of an originating
 /// message into a later message's correlation field. Zero is Invalid/Unspecified.
 /// </remarks>
-/**
- * ESPressio Memory Audit
- * Members:
- * - _value (std::uint64_t): 8 bytes [0 bytes dynamic allocation]
- * Total Memory: 8 bytes [0 bytes dynamic allocation]
- * Basis: ESP32/Xtensa ILP32 reference ABI (4-byte pointers/size_t); ESPressio stateful allocators/deleters included; ABI-sensitive STL/platform internals are identified explicitly.
- * End ESPressio Memory Audit
- */
+
 class CorrelationId final {
     std::uint64_t _value{0};
 
@@ -104,15 +90,7 @@ public:
 };
 
 /// <summary>Inclusive protocol-version range advertised by a primitive-family implementation.</summary>
-/**
- * ESPressio Memory Audit
- * Members:
- * - Minimum (PrimitiveProtocolVersion): 2 bytes [0 bytes dynamic allocation]
- * - Maximum (PrimitiveProtocolVersion): 2 bytes [0 bytes dynamic allocation]
- * Total Memory: 4 bytes [0 bytes dynamic allocation]
- * Basis: ESP32/Xtensa ILP32 reference ABI (4-byte pointers/size_t); ESPressio stateful allocators/deleters included; ABI-sensitive STL/platform internals are identified explicitly.
- * End ESPressio Memory Audit
- */
+
 struct PrimitiveProtocolVersionRange final {
     PrimitiveProtocolVersion Minimum{0};
     PrimitiveProtocolVersion Maximum{0};
@@ -152,14 +130,7 @@ struct PrimitiveProtocolVersionRange final {
 /// The digest must be produced from the canonical versioned/domain-separated semantic
 /// encoding owned by the corresponding contract.
 /// </remarks>
-/**
- * ESPressio Memory Audit
- * Members:
- * - _bytes (Storage): 32 bytes [0 bytes dynamic allocation]
- * Total Memory: 32 bytes [0 bytes dynamic allocation]
- * Basis: ESP32/Xtensa ILP32 reference ABI (4-byte pointers/size_t); ESPressio stateful allocators/deleters included; ABI-sensitive STL/platform internals are identified explicitly.
- * End ESPressio Memory Audit
- */
+
 class ContractFingerprint final {
 public:
     /// <summary>Fingerprint width in bytes.</summary>
