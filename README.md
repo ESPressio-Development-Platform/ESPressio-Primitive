@@ -2,7 +2,7 @@
 
 Dependency-neutral conceptual-message vocabulary for the ESPressio Development Platform.
 
-**Release target:** `1.0.0`
+**Release target:** ``
 
 ESPressio Primitive contains the small set of identities and compatibility types that are shared by conceptual primitive families such as Command, Event, State, Mesh control and future application-defined families. It deliberately does **not** define transport, routing, destinations, payload schemas, application semantics or a common polymorphic base class for every primitive.
 
