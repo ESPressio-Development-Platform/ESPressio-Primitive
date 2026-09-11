@@ -48,7 +48,7 @@ static_assert(bool(occurrence) && occurrence.Value() == 99);
 
 ## Explicit directory bootstrap
 
-Each family supplies `PrimitiveTypeTraits<T>::Descriptor() noexcept`, returning a common descriptor by value. Ordinary application code calls `Register<T>()`; it does not construct a T or register a runtime callback.
+Each family supplies a static `T::GetPrimitiveTypeDescriptor() noexcept` member (which a CRTP family tier may inherit) or specializes `PrimitiveTypeTraits<T>::Descriptor() noexcept`, returning a common descriptor by value. The default trait delegates to the static member only during explicit registration; lookups never invoke family behavior. Ordinary application code calls `Register<T>()`; it does not construct a T or register a runtime callback.
 
 This self-contained mock family demonstrates the customization point:
 

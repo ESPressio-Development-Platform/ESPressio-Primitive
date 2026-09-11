@@ -40,5 +40,14 @@ struct PrimitiveTypeDescriptor final {
     }
 };
 /// <summary>Family customization point. Descriptor() returns immutable common metadata by value.</summary>
-template<class T> struct PrimitiveTypeTraits;
+template<class T> struct PrimitiveTypeTraits {
+    /// <summary>Delegates registration metadata to a family-provided static Type member.</summary>
+    /// <remarks>CRTP family tiers can supply this inherited member without per-application
+    /// specializations. It is called only by explicit registration, never by lookup;
+    /// Primitive knows no family Type and stores/invokes no runtime behavior.</remarks>
+    static PrimitiveTypeDescriptor Descriptor() noexcept {
+        static_assert(noexcept(T::GetPrimitiveTypeDescriptor()), "Family descriptor must be noexcept");
+        return T::GetPrimitiveTypeDescriptor();
+    }
+};
 } // namespace ESPressio::Primitive

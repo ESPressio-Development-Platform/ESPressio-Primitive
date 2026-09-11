@@ -11,6 +11,14 @@ void* operator new(std::size_t n) { if (forbidAllocation.load()) std::abort(); i
 void operator delete(void* p) noexcept { std::free(p); }
 void operator delete(void* p, std::size_t) noexcept { std::free(p); }
 struct Sample {};
+struct FamilyDefinition {
+ static PrimitiveTypeDescriptor GetPrimitiveTypeDescriptor() noexcept {
+  return {{0x8000,17}, "private.static", {}, {1,1}, {}, {}, {}};
+ }
+};
+struct DeclarativeType final : FamilyDefinition {
+ DeclarativeType()=delete; // Registration never constructs application payloads.
+};
 namespace ESPressio::Primitive {
 template<> struct PrimitiveTypeTraits<Sample> {
  static constexpr PrimitiveTypeDescriptor Descriptor() noexcept {
@@ -64,6 +72,10 @@ int main() {
  assert(retry.Register(descriptor(3,0,"bad"))==R::InvalidDescriptor);
  assert(retry.Register<Sample>()==R::Success);
  assert(retry.Initialize()==TypeDirectoryInitializationStatus::Success);
+ TypeDirectory<1> declarative;
+ assert(declarative.Register<DeclarativeType>()==R::Success);
+ assert(declarative.Initialize()==TypeDirectoryInitializationStatus::Success);
+ assert(declarative.View().Find({0x8000,17}));
  forbidAllocation=false;
  std::thread readers[4];
  for(auto& reader:readers) reader=std::thread([v]{for(int i=0;i<10000;++i) assert(v.Find({3,9}) && v.Find(2,"sample"));});
