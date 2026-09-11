@@ -1,21 +1,18 @@
 name: CI
-
 on:
   push:
-    branches:
-      - main
-      - structural_realignment
-      - 'structural_realignment_propagation*'
-      - 'feature/**'
-      - 'optimisation/**'
+    branches: [main, primitives_redesign]
   pull_request:
-
 jobs:
-  host-regressions:
+  host-contracts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build primitive vocabulary regression
-        run: g++ -std=c++17 -Wall -Wextra -Werror -Isrc tests/primitive_types_test.cpp -o primitive_types_test
-      - name: Run primitive vocabulary regression
-        run: ./primitive_types_test
+      - name: Configure
+        run: cmake -S . -B build
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Run reviewed contract tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Negative compile contracts and independent public headers
+        run: python3 tests/check_compile_contracts.py

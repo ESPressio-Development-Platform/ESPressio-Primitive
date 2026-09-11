@@ -47,48 +47,6 @@ public:
     constexpr bool operator<(ConceptualMessageId other) const noexcept { return _value < other._value; }
 };
 
-/// <summary>
-/// Optional causal/workflow correlation identity shared by conceptual primitive families.
-/// </summary>
-/// <remarks>
-/// CorrelationId is deliberately a distinct semantic type from ConceptualMessageId,
-/// even when an application intentionally copies the numeric value of an originating
-/// message into a later message's correlation field. Zero is Invalid/Unspecified.
-/// </remarks>
-
-class CorrelationId final {
-    std::uint64_t _value{0};
-
-public:
-    /// <summary>Creates the Invalid/Unspecified correlation identifier.</summary>
-    constexpr CorrelationId() noexcept = default;
-
-    /// <summary>Creates a correlation identifier from its exact scalar representation.</summary>
-    constexpr explicit CorrelationId(std::uint64_t value) noexcept : _value(value) {}
-
-    /// <summary>
-    /// Explicitly creates a correlation identifier using the scalar value of a conceptual message.
-    /// </summary>
-    constexpr static CorrelationId FromMessage(ConceptualMessageId messageId) noexcept {
-        return CorrelationId(messageId.Value());
-    }
-
-    /// <summary>Gets the exact scalar representation.</summary>
-    constexpr std::uint64_t Value() const noexcept { return _value; }
-
-    /// <summary>Indicates whether the identifier is non-zero.</summary>
-    constexpr explicit operator bool() const noexcept { return _value != 0U; }
-
-    /// <summary>Compares correlation identifiers.</summary>
-    constexpr bool operator==(CorrelationId other) const noexcept { return _value == other._value; }
-
-    /// <summary>Compares correlation identifiers for inequality.</summary>
-    constexpr bool operator!=(CorrelationId other) const noexcept { return _value != other._value; }
-
-    /// <summary>Provides deterministic scalar ordering.</summary>
-    constexpr bool operator<(CorrelationId other) const noexcept { return _value < other._value; }
-};
-
 /// <summary>Inclusive protocol-version range advertised by a primitive-family implementation.</summary>
 
 struct PrimitiveProtocolVersionRange final {
@@ -176,8 +134,6 @@ public:
 
 static_assert(sizeof(ConceptualMessageId) == sizeof(std::uint64_t),
               "ConceptualMessageId must remain an exact 64-bit scalar wrapper.");
-static_assert(sizeof(CorrelationId) == sizeof(std::uint64_t),
-              "CorrelationId must remain an exact 64-bit scalar wrapper.");
 static_assert(sizeof(ContractFingerprint) == ContractFingerprint::Size,
               "ContractFingerprint must remain an exact 32-byte digest value.");
 

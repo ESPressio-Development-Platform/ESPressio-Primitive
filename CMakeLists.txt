@@ -1,3 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT COMMAND idf_component_register)
+    project(ESPressioPrimitive LANGUAGES CXX)
+    include(CTest)
+endif()
 if(COMMAND idf_component_register)
     idf_component_register(INCLUDE_DIRS "src")
 elseif(COMMAND register_component)
@@ -9,5 +14,9 @@ else()
     target_include_directories(ESPressio-Primitive INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
     )
+    target_compile_features(ESPressio-Primitive INTERFACE cxx_std_17)
     add_library(ESPressio::Primitive ALIAS ESPressio-Primitive)
+    if(BUILD_TESTING AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+        add_subdirectory(tests)
+    endif()
 endif()

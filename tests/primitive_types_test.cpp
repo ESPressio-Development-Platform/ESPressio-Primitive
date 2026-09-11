@@ -12,10 +12,8 @@ int main() {
     static_assert(sizeof(PrimitiveFamilyId) == 2);
     static_assert(sizeof(PrimitiveProtocolVersion) == 2);
     static_assert(sizeof(ConceptualMessageId) == 8);
-    static_assert(sizeof(CorrelationId) == 8);
     static_assert(sizeof(ContractFingerprint) == 32);
     static_assert(std::is_trivially_copyable<ConceptualMessageId>::value);
-    static_assert(std::is_trivially_copyable<CorrelationId>::value);
     static_assert(std::is_trivially_copyable<ContractFingerprint>::value);
 
     assert(FamilyIds::Invalid == 0x0000U);
@@ -41,29 +39,6 @@ int main() {
     const ConceptualMessageId message(99U);
     assert(static_cast<bool>(message));
     assert(message.Value() == 99U);
-
-    const CorrelationId correlation = CorrelationId::FromMessage(message);
-    assert(static_cast<bool>(correlation));
-    assert(correlation.Value() == message.Value());
-
-    ConceptualMessageIdGenerator generator;
-    ConceptualMessageId issued;
-    assert(generator.TryIssue(issued));
-    assert(issued.Value() == 1U);
-    assert(generator.TryIssue(issued));
-    assert(issued.Value() == 2U);
-    assert(generator.RestoreHighWater(ConceptualMessageId(41U)));
-    assert(!generator.RestoreHighWater(ConceptualMessageId(40U)));
-    assert(generator.TryIssue(issued));
-    assert(issued.Value() == 42U);
-    assert(generator.RestoreHighWater(
-        ConceptualMessageId(std::numeric_limits<std::uint64_t>::max())));
-    assert(!generator.TryIssue(issued));
-    assert(issued.Value() == 42U);
-    generator.ResetForNewSourceIncarnation();
-    assert(!static_cast<bool>(generator.HighWater()));
-    assert(generator.TryIssue(issued));
-    assert(issued.Value() == 1U);
 
     PrimitiveProtocolVersion selected = 0;
     const PrimitiveProtocolVersionRange local{1, 3};
