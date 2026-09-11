@@ -1,5 +1,5 @@
 find_package(Threads REQUIRED)
-foreach(name primitive_types primitive_directory primitive_policy)
+foreach(name primitive_types primitive_directory primitive_policy primitive_fingerprint)
     add_executable(${name}_test ${name}_test.cpp)
     target_link_libraries(${name}_test PRIVATE ESPressio::Primitive Threads::Threads)
     target_compile_options(${name}_test PRIVATE -Wall -Wextra -Werror -fno-rtti -UNDEBUG)

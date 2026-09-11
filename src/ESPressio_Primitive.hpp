@@ -6,3 +6,4 @@
 #include "ESPressio_PrimitiveAdmission.hpp"
 #include "ESPressio_PrimitivePolicy.hpp"
 #include "ESPressio_TypeDirectory.hpp"
+#include "ESPressio_ContractFingerprintBuilder.hpp"

@@ -206,3 +206,19 @@ const auto& exactDigest = fingerprint.Bytes();
 Directory resident memory is exactly `sizeof(TypeDirectory<N>)`: N common descriptor slots plus count/freeze bookkeeping and compiler padding. Initialization uses one descriptor-sized sort temporary, with no auxiliary index, allocation, stack recursion or thread. Text/extension static storage is separately owned and accounted by its defining family. Lookup is logarithmic by key and bounded linear by name.
 
 Run `cmake -S . -B build`, `cmake --build build`, `ctest --test-dir build --output-on-failure`, and `python3 tests/check_compile_contracts.py`. Tests cover transactional registration, capacity, freeze, ordering, concurrent reads, allocation denial, family identity, normalized policy equivalence, exact admission semantics, negative compilation and standalone no-RTTI/no-exception headers.
+
+## Family contract fingerprint construction
+
+`ContractFingerprintBuilder` is a fixed-storage SHA-256 sink. A family explicitly adds its versioned domain and complete normalized semantics with `Byte`, `Integer` (eight little-endian bytes) and `Text` (length-prefixed bytes), then calls `Finish()` for all 32 digest bytes. `Finish()` preserves the builder. No heap, native-layout encoding, family dependency or authentication behavior is introduced. Serializable families stream their full canonical schema into this sink and include their normalized policy requirements; a reduced structural hash is insufficient input.
+
+```cpp
+#include <ESPressio_ContractFingerprintBuilder.hpp>
+ESPressio::Primitive::ContractFingerprint exampleContract() {
+    ESPressio::Primitive::ContractFingerprintBuilder builder;
+    builder.Text("example.private-family.contract.v1");
+    builder.Integer(7);
+    return builder.Finish();
+}
+```
+
+Validation covers empty input, both padding boundaries, multiple blocks, independently generated hashlib vectors, constant evaluation and heap denial. This digest is compatibility metadata, not a credential or destination-admission evidence.
