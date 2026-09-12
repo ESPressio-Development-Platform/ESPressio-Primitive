@@ -2,80 +2,102 @@
 
 Date: 2026-09-12
 
-This file is the current cross-repository continuation card for the Primitive Platform redesign. It supplements the historical `TRANCHE_HANDOFF.MD`; when they differ on current implementation state, this file is authoritative for the latest published tranche position. The uploaded architecture handoff remains authoritative for locked contracts, ordering, completion gates and prohibited compatibility shortcuts.
+This file is the current cross-repository continuation card. The uploaded architecture handoff remains authoritative for locked contracts, ordering and completion gates. `TRANCHE_HANDOFF.MD` remains historical context; this file is authoritative for the latest pushed tranche position.
 
 ## Standing authorization
 
-The user has explicitly authorized implementation through **all remaining tranches** without any further tranche-by-tranche authorization pause. Do not stop to request permission at the historical authorization boundaries in Sections 27–32. Preserve the locked dependency order and do not begin a later tranche until the predecessor completion gate is executable-evidence green. No version changes, tags, releases, force pushes, `main` integration or backward-compatibility shims are authorized unless separately requested.
+The user has explicitly authorized implementation through **all remaining structural tranches** without additional tranche-by-tranche authorization pauses. Preserve dependency/completion ordering, but do not stop to request permission at historical gates.
 
-Only pushed commits plus repository handoffs/reports count as recoverable progress. Keep this current handoff synchronized before any interruption or usage-limit exit.
+Not authorized unless separately requested: version changes, CHANGELOG release finalization, `main` reintegration, tags, releases, Wiki publication, force pushes or backward-compatibility shims. Tranche 12 release preparation therefore remains outside the current structural authorization.
 
-## Completed tranches
+## Completed structural tranches
 
-Foundation F01–F08, Tranche 2 Task/Timing/Threads, Tranche 3 Event, Tranche 4 Command, Tranche 5 State and Tranche 6 generic Adapters are complete.
+Foundation F01–F08, Tranche 2 Task/Timing/Threads, Tranche 3 Event, Tranche 4 Command, Tranche 5 State, Tranche 6 generic Adapters and **Tranche 7 Radio/providers** are complete.
 
-### State final gate
+### Tranche 5 State
 
-`ESPressio-State/primitives_redesign` final Tranche-5 head:
+Final head: `ESPressio-State/primitives_redesign` `25637a7555e3a03f1d709bd8e37340bc4d545b6e`.
 
-`25637a7555e3a03f1d709bd8e37340bc4d545b6e` — `Close State redesign tranche`
+Final workflow run `34703052958` succeeded. `STATE_TRANCHE_IMPLEMENTATION_REPORT.md` and `STATE_CONTINUATION_CHECKPOINT.md` contain the formal closure evidence.
 
-GitHub Actions run `34703052958` completed both `host-contracts` and `esp32-typed-surface` successfully. The immediately preceding executable-evidence head `0d5c3d3a9b03ad3e6272bc8f0744e404ca1c53f7` ran 37/37 host CTest cases successfully, including the twelve required V1 examples, three intended compile-failure contracts, exact State V1 wire vectors, persistence/session/provenance/convergence/continuity/resource/tooling tests and no-RTTI coverage. `STATE_TRANCHE_IMPLEMENTATION_REPORT.md` and `STATE_CONTINUATION_CHECKPOINT.md` in ESPressio-State contain the formal closure evidence.
+### Tranche 6 generic Adapters
 
-State predecessor Publisher/Manager/Availability/Epoch/ObserverThread/StateCodec architecture has been removed. State direct package/build metadata is Observable-free; Observable appears only in the raw host harness because ESPressio-Timing still declares it as its own transitive dependency. Package version remains unchanged.
+Final report head: `ESPressio-Adapters/primitives_redesign` `e43076c6c158b9036da4a3424b77043bb5910975`.
 
-Known later-platform gaps remain explicitly open and are not hidden by State success: the current ESP32 provider still lacks the required complete joinable-execution implementation for target hardware and the ESP32 storage provider does not yet establish the complete P4 hardware-durability contract. Provider-layer work belongs to later ordered tranches.
+Final workflow run `34708547392` succeeded for host + ESP32 surfaces. `TRANCHE_6_IMPLEMENTATION_REPORT.md` contains the formal A6-01..A6-24 mapping.
 
-### Tranche 6 generic Adapters final gate
+Direct Adapters dependencies are exactly System + Primitive + Task. A1/Q1/A2 bounded ownership, fixed capacity, finite pursuit, wake-driven service, frozen family bindings, resource accounting and deterministic shutdown are closed.
 
-`ESPressio-Adapters/primitives_redesign` formal Tranche-6 report head:
+### Tranche 7 Radio/providers
 
-`e43076c6c158b9036da4a3424b77043bb5910975` — `Record completed Adapter Tranche 6 implementation`
+Formal Radio closure report commit:
 
-Its exact executable-evidence parent is:
+`ESPressio-Radio/primitives_redesign` `364f083c297e2072f7972f2fd63fcfa79cb6c1dd` — `Close Radio redesign tranche`
 
-`d946526de08c9fc17582a39a949f5e30d782db4b` — `Make due-service test respect nonblocking Busy`
+Executable evidence head:
 
-GitHub Actions run `34708407225` on the executable-evidence head completed both `host-contracts` and `esp32-surface` successfully. The host matrix passed all 18 checks: A1 byte ownership, Q1 complete-bundle/private/shared/quarantine capacity, rollback and deterministic fit, binding/freeze, runtime queues, finite P2 pursuit, wake-driven deferred retry, contract-matrix validation, randomized capacity stress, exact resource accounting, deterministic shutdown, post-Initialize no-heap execution, hot-path `noexcept` assertions, intended compile-failure of `ByteLease` copy, and the dependency-neutral mock integration example. The ESP32 job compiled the complete A1/Q1/A2 public surface with `-fno-rtti` successfully.
+`2a33d86c782ef25a25750ccd2b50b28191abd161` — `Fix adversarial Radio logical-length mutation`
 
-The report-only head `e43076c6c158b9036da4a3424b77043bb5910975` re-ran the same workflow as run `34708547392`; both host and ESP32 jobs succeeded again. `TRANCHE_6_IMPLEMENTATION_REPORT.md` in ESPressio-Adapters maps A6-01 through A6-24 and the Section 27.27 completion gate to source/executable/documentation evidence.
+Radio workflow run **`34719879383` — SUCCESS**. The active suite proves canonical dependency/predecessor eradication, managed-provider contract, exact v3 wire, compact Clock wire/capture, adaptive Clock coordinator, Radio-local Q1 capacity, deterministic resource accounting, bounded v3 reassembly, malformed/truncated/spoofed ingress rejection, quarantine promotion, R3 DRR/deadline scheduling, Clock promotion under saturated BestEffort load, single-owner ingress routing, cooperative single-Task domain runtime and family-opaque `RadioRuntime` lifecycle/peer semantics.
 
-Tranche-6 delivered the locked generic substrate:
+Provider evidence:
 
-- A1 compile-time size-class arenas, smallest-fit contiguous slots, move-only generation-safe `ByteLease`, immutable actual-length commit and no chaining/heap fallback/live growth;
-- Q1 independent inbound/outbound planes, six private non-lendable service domains, opportunistic SharedOverflow, inbound-only UntrustedIngress, complete same-domain record+byte admission, additive deterministic protected-capacity fit, monotonic capacity generation and fixed wake;
-- A2 one frozen binding per `PrimitiveFamilyId`, transactional Initialize/freeze, runtime-owned bounded queues, shared T1 inbound/outbound workers with rotating service/family fairness, trusted ingress ownership-only callback boundary, bounded quarantine classifier/promotion, direct outbound encode-to-owned-bytes, finite monotonic P2 pursuit, generation-correlated lower-transport completion, exact M1 evidence discipline, distinct immediate peer/original semantic source and deterministic shutdown;
-- `ESPressio_AdapterResources.hpp` plus `RESOURCE_ACCOUNTING.md`; canonical host profile measured `sizeof(AdapterRuntime)=274096`, `AdapterWorkRecord=328`, each queue bank `13376`, each worker-pool object `504`, SharedOverflow semantic reserve `30720`, inbound UntrustedIngress reserve `15360`, with worker stacks reported separately;
-- full README, public/non-trivial ownership/state-machine comments and `examples/MockAdapterRuntime/mock_adapter_runtime.cpp` syntax-compiled in CI.
+- `ESPressio-ESP32/primitives_redesign` `b29b53bc438a0d5013075ce58a501424c689c0a0`, CI run `34716648904` SUCCESS. Raw80211 and BLE implement the managed provider contract; Raw80211 uses ESP-IDF raw-TX completion; BLE is broadcast-only with 26 opaque bytes and bounded deferred advertising completion.
+- `ESPressio-NRF24/primitives_redesign` `a641199da7d4e5101e4d2c871715a9c870bdc531`, CI run `34716303385` SUCCESS. Managed finite ingress, exact 3060-byte v3 logical maximum, conservative retry-aware cost, synchronous terminal completion and real unicast peer-ACK evidence are validated.
 
-Direct Adapters dependencies are exactly System + Primitive + Task. There is no family/transport/Threads/Timing/Observable dependency in the generic repository. Package version remains `0.1.0`; no version, tag, release, force push or `main` integration occurred.
+Radio direct dependencies are exactly System + Task + Timing + Units. Canonical predecessor v2 `RadioTransport`, `RadioWorker`, `RadioControlWorker`, PrecisionThread control path, Event bridge, Observable callbacks and predecessor Clock synchronizer were removed rather than shimmed.
 
-## Current next tranche — Tranche 7 Radio core and physical providers
+`README.md`, `CLOCK_SYNCHRONIZATION.md` and `RADIO_TRANCHE_IMPLEMENTATION_REPORT.md` on Radio document the managed architecture.
 
-Standing authorization requires continuing immediately into Tranche 7 after the completed Adapters gate; do **not** stop to request another authorization.
+### Explicit Tranche-7 non-claim
 
-Before the first Tranche-7 source write, re-query and reconcile the current `primitives_redesign` tips for at least:
+Structural Clock architecture is complete, but no software test invents physical timing certification:
 
-- `ESPressio-Radio`
-- `ESPressio-ESP32`
-- `ESPressio-NRF24`
-- any additional physical Radio provider repository discovered by the current source/dependency audit
+- Raw80211 RX timing remains Estimated until conservative on-target capture uncertainty is characterized.
+- BLE legacy advertising cannot carry the exact 32-byte Clock response and does not claim Clock-qualified timestamping.
+- NRF24 has a 32-byte MTU and strong TX/ACK evidence but no bounded/certified receive timestamp yet.
 
-Do not trust the old Section-28 planning SHAs if any repository has advanced. Read every intervening commit/source delta and preserve legitimate current work. No force push or branch rewind.
+This is not a blocker for the structural tranche. It is a provider/deployment qualification boundary that later validation must keep explicit.
 
-Tranche 7 remains the locked Section-28 R1/R2/R3/Q1/K1/K2 work package. The source-of-truth implementation order is R7-01 through R7-28 from the uploaded architecture handoff. Key completion boundaries include:
+## Current next tranche — Tranche 8 Mesh/MeshAdapters
 
-- Radio direct deps exactly System + Task + Timing + Units; no Event/Observable/Threads/family/Mesh/Adapters dependency in Radio core;
-- remove predecessor PrecisionThread Radio worker/control-worker and canonical Event/Observable bridge paths rather than hiding them behind compatibility defaults;
-- exact six wire service-class codes and exact v3 15-byte fixed fragment prefix plus source address, with manual endian-stable codec and non-increasing remaining residence;
-- Q1 independent protected inbound/outbound planes, six private classes, SharedOverflow, inbound UntrustedIngress, atomic first-fragment complete reassembly ownership and outbound complete transfer+byte ownership, no embedded maximum payload buffer per reassembly record and no heap fallback/live resize after Running;
-- R2/R3 finite positive provider cost and one scheduler per physical contention domain, weighted rotating/work-conserving DRR, one fragment per visit, bounded EDF promotion debt with repayment, at most one scheduler-owned outstanding physical fragment per domain, concurrent independent domains, retained Busy with wake-driven retry and generation-safe deferred completion;
-- `TransmissionCompletion` terminally knowable for managed providers; `PeerAcknowledgement` only where the provider proves it; link ACK/completion never becomes DestinationPrimitiveAdmission;
-- direct-neighbour Clock/K1/K2 traffic uses the same Q1/R3 scheduler with no privileged control bypass; Timing owns adaptive evidence/deadline policy; certified clock frames do not fragment; nRF24 certified profile remains <=32 bytes; provider capture uncertainty/quality is explicit and unknown/unbounded evidence cannot certify Synchronized/Holdover;
-- complete host/provider/fuzz/no-heap/no-RTTI/no-exception/resource validation, manifests/workflows/dependency guards, provider compile integrations and Radio/CLOCK_SYNCHRONIZATION/source documentation before the tranche gate is claimed.
+Continue immediately under standing authorization.
 
-Provider commits must follow the Radio provider-contract commit so compile failures expose every provider that has not migrated. Do not add compatibility default methods that allow an old drain-until-empty/submission-only provider to appear compliant.
+Before the first write, freeze/reconcile the **live** source tips for at least:
 
-## After Tranche 7
+- ESPressio-Mesh `primitives_redesign`
+- ESPressio-MeshAdapters `primitives_redesign`
+- ESPressio-Adapters `primitives_redesign`
+- ESPressio-Radio `primitives_redesign`
+- ESPressio-Event / Command / State `primitives_redesign`
+- ESPressio-Security and any other direct current Mesh dependency touched by the locked M8 work package
 
-Continue through all later locked tranches in architecture dependency order under the same standing authorization, final-gating every predecessor before the next tranche. Tranche 8 is Mesh/MeshAdapters, followed by Tranche 9 RadioAdapters and non-Mesh transports, then the later dynamic-consumer/platform-wide eradication/release-preparation gates specified by the architecture handoff.
+Never trust stale planning SHAs when live tips differ. Read intervening deltas and preserve legitimate concurrent work. No branch rewind or force push.
+
+The locked M8-01..M8-24 sequence remains authoritative. The decisive completion requirements include:
+
+- exact neutral M1 seven-disposition admission mapping at every Mesh family boundary;
+- only Accepted/AlreadyAccepted creates DestinationPrimitiveAdmission;
+- network Seen/Forwarded state independent of delayed local admission;
+- DeferredLocal retry is local only, wake/capacity-generation driven, never network re-forward;
+- source node is never redispatched through its own remote broadcast path;
+- finite non-increasing remaining residence that duplicate/retry cannot reset;
+- generic NoRemoteEvidence family restrictions, including rejection of response-bearing Command broadcast and invalid/stateless State broadcast;
+- complete atomic Mesh relay record+bytes+workspace Q1 ownership and membership compatibility profile;
+- all selected next-hop physical work goes through managed Radio Q1/R3; Mesh never becomes a physical fragment arbiter;
+- Mesh owns reference topology/trust selection only; Radio owns timestamp exchange; Timing owns estimator/discipline;
+- reference failover resets source-specific estimator evidence and propagates conservative uncertainty;
+- migrate MeshRuntimeWorker away from PrecisionThread/std::function/polling to generic Thread composition;
+- no canonical Observable/Event/Command/State dependency leaks into Mesh core;
+- frozen Event/Command/State MeshAdapter family bindings through ESPressio-Adapters;
+- deterministic resource accounting, host/security/fuzz/multi-node tests, dependency guards and documentation before claiming completion.
+
+## After Tranche 8
+
+Continue without authorization pause through:
+
+- Tranche 9 — RadioAdapters and non-Mesh transports;
+- Tranche 10 — dynamic tooling/platform consumers;
+- Tranche 11 — platform-wide eradication and final structural validation.
+
+Tranche 12 is release readiness/preparation only and remains separately consequential/not authorized by the standing structural implementation authorization.
