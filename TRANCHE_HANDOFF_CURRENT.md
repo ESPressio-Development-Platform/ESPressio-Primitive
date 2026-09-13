@@ -18,20 +18,21 @@ Physical nonclaims remain: Raw80211 RX capture Estimated until characterized; BL
 
 - Mesh `primitives_redesign`: `e21a4a7d7f527db59171477e27e12263231a7069`, CI `34742545719` SUCCESS.
 - Adapters `primitives_redesign`: `77e034ec8d3efa4a8c8e6df0ef2f6a405f8dd98a`. Existing `AdapterSemanticProvenance::ImmediatePeer.Token` remains the opaque peer-route fact; do not expand family admission merely to pass routes.
-- MeshAdapters `primitives_redesign`: **`fcec9570287cc12455c285f5c074491a3ebf215c`** (`Validate real State MeshAdapter binding`). This live tip is **UNDER VALIDATION**.
-- State validation workflow: **`34747763059`**, status **IN PROGRESS** at last update.
-- Last fully green MeshAdapters checkpoint: **`f09d5a1e9db6bf069216e37057d8167f6600bd07`**, workflow **`34747588394` SUCCESS**.
+- MeshAdapters `primitives_redesign`: **`fcec9570287cc12455c285f5c074491a3ebf215c`** (`Validate real State MeshAdapter binding`).
+- exact MeshAdapters redesign workflow **`34747763059` — SUCCESS**.
+- therefore the current **green MeshAdapters checkpoint is `fcec9570287cc12455c285f5c074491a3ebf215c`**.
 
-Do NOT call Tranche 8 complete yet.
+Do NOT call Tranche 8 complete yet. Full locally-originated/outbound family composition, predecessor removal, M8-23/M8-24 gates, manifests/workflows/docs/umbrella audit, Command fixture cleanup and formal Tranche-8 closure remain open.
 
-## Green integration at `f09d5a1…`
+## Green integration at `fcec957…`
 
-Workflow `34747588394` validates together:
+Workflow `34747763059` validates together:
 
 - bounded Mesh -> A2 ingress correlation;
 - neutral A2 -> Mesh lower transport;
 - real Event family MeshAdapter binding;
-- real Command family MeshAdapter binding with actual Command runtime, Persistence, response reservation/routing, replay/idempotency and M2 broadcast rules.
+- real Command family MeshAdapter binding with actual Command runtime, Persistence, response reservation/routing and replay/idempotency;
+- real State family MeshAdapter binding with actual State runtime/session/version mutation and role-correct provenance.
 
 A2 owns logical pursuit/retry, Mesh owns routing/forwarding/application lifecycle, and Radio R3 owns physical fragmentation/arbitration. No duplicate family-local retry, worker, route or fragmentation system was introduced.
 
@@ -47,31 +48,31 @@ Event binding is frozen/fixed, delegates to real `Event::Runtime`, preserves rec
 
 ### Command — GREEN
 
-`ESPressio_CommandMeshAdapterBinding.hpp` is validated at `f09d5a1…`, run `34747588394` SUCCESS. Response-bearing inbound requests receive bounded pre-reserved `CommandRemoteResponseDestination`; response delivery is handed synchronously to A2, after which A2 owns pursuit. Response-bearing request broadcast is rejected; no-response `NoRemoteEvidence` request may broadcast; responses never generic-broadcast. Exact terminal duplicate is idempotent and does not rerun the handler. Route tokens remain opaque.
+`ESPressio_CommandMeshAdapterBinding.hpp` is validated at `f09d5a1…`, run `34747588394` SUCCESS and remains green in `34747763059`. Response-bearing inbound requests receive bounded pre-reserved `CommandRemoteResponseDestination`; response delivery is handed synchronously to A2, after which A2 owns pursuit. Response-bearing request broadcast is rejected; no-response `NoRemoteEvidence` request may broadcast; responses never generic-broadcast. Exact terminal duplicate is idempotent and does not rerun the handler. Route tokens remain opaque.
 
 M1 mapping: `Admitted` -> `Accepted`; terminal/history duplicates -> `AlreadyAccepted`; in-progress/busy -> `TemporarilyUnavailable`; ledger pressure -> `ResourceUnavailable`; unknown/protocol -> `Unsupported`; no active requester -> `Rejected`; invalid/schema/decode -> `Malformed`.
 
 Command test harness still has two cleanup items before formal Tranche-8 closure because direct replacement of the ~20 KB file was connector-blocked: commit the separate `broadcastProvenance` variable directly into the test source, and narrow broad `ESPressio_Serializable.hpp` to `ESPressio_SerializationMacros.hpp`, then remove the Command-only `-Wno-error=misleading-indentation` workflow workaround. Production behavior is green and must not be weakened.
 
-## State M8-22 — IMPLEMENTED, VALIDATION RUNNING
+### State — GREEN
 
-Production binding `src/ESPressio_StateMeshAdapterBinding.hpp` already existed. New real host contract `tests/state_mesh_adapter_binding_test.cpp` was added in commit `abe7d05bb83c0863f01d348e86564254d49dec98`; workflow State dependency/compile/run coverage was added in live tip `fcec9570287cc12455c285f5c074491a3ebf215c`.
+`src/ESPressio_StateMeshAdapterBinding.hpp` plus `tests/state_mesh_adapter_binding_test.cpp` are validated at `fcec957…`, workflow `34747763059` SUCCESS.
 
-The test intentionally uses a real `State::Runtime` with a normal pre-established remote-owner session, then submits a newer owner-origin Publication through the MeshAdapter. It validates:
+The real host contract uses `State::Runtime` with a normal pre-established remote-owner session and submits a newer owner-origin Publication through MeshAdapters. It validates:
 
-- exact Owner `DeviceRuntimeIdentity` provenance from authenticated State wire;
+- exact Owner `DeviceRuntimeIdentity` provenance from authenticated State bytes;
 - runtime incarnation is retained from State bytes and never sourced from Mesh membership;
 - real State session/version mutation through `Runtime::AdmitRemote`;
-- exact duplicate -> family idempotent `AlreadyAccepted`;
+- exact duplicate -> `AlreadyAccepted`;
 - generic State broadcast rejection with fail-closed provenance clearing;
 - authenticated Mesh-source Device mismatch rejection;
 - frozen service-class mismatch rejection;
-- requester-origin `SubscribeRequest` policy resolution selects Requester, not Owner, as semantic source;
+- requester-origin `SubscribeRequest` selects Requester, not Owner, as semantic source;
 - forged requester Device rejected before State mutation.
 
-The contract uses a valid finite State convergence policy with `NoRemoteEvidence`, so the Publication path tests real mutation without requiring an unrelated acknowledgement transport. State session/version/baseline/resync logic remains wholly family-owned.
+The host contract uses a valid finite `NoRemoteEvidence` State convergence policy so Publication mutation can be tested without adding an unrelated acknowledgement transport. State session/version/baseline/resync/convergence state remains family-owned.
 
-Locked State rules: `StateValidatedIngressContext` is full `DeviceRuntimeIdentity`; message kind selects Owner vs Requester; exact role-specific identity equality is required; `State::Runtime::AdmitRemote<TState,Format>` is the security/session/convergence boundary; generic State broadcast is forbidden.
+Locked State rules: `StateValidatedIngressContext` is full `DeviceRuntimeIdentity`; message kind selects Owner vs Requester; exact role-specific identity equality is required; `State::Runtime::AdmitRemote<TState,Format>` remains the security/session/convergence boundary; generic State broadcast is forbidden.
 
 ## Exact rules — do not regress
 
@@ -84,12 +85,11 @@ Locked State rules: `StateValidatedIngressContext` is full `DeviceRuntimeIdentit
 
 ## Immediate continuation
 
-1. Inspect workflow `34747763059`. If State fails, fix only the exact contract/build issue and rerun. If green, promote the exact State checkpoint here immediately.
-2. Complete locally-originated/outbound family integration through neutral A2 lower transport and bounded Mesh route-token composition.
-3. Remove predecessor Event-only MeshAdapter submission/transport paths only after replacement inbound/outbound coverage is green; no shims.
-4. Complete M8-23/M8-24 security, resource, fuzz, multi-node and dependency gates; audit manifests/workflows/README/comments/umbrella; produce formal Tranche-8 closure report.
-5. Complete Command test-harness cleanup before formal closure.
-6. Update this file after every material checkpoint and before any stop. Never leave unvalidated live-tip work absent from this card.
+1. Complete locally-originated/outbound Event, Command and State family composition through the neutral A2 lower-transport seam and bounded Mesh route-token composition. Preserve family-owned serialization/lease semantics and A2-owned pursuit.
+2. Remove predecessor Event-only MeshAdapter submission/transport paths only after replacement inbound/outbound coverage is green; no shims.
+3. Complete M8-23/M8-24 security, resource, fuzz, multi-node and dependency gates; audit manifests/workflows/README/comments/umbrella; produce formal Tranche-8 closure report.
+4. Complete Command test-harness cleanup before formal closure.
+5. Update this file after every material checkpoint and before any stop. Never leave unvalidated live-tip work absent from this card.
 
 ## Remaining authorized structural work
 
