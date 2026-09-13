@@ -20,6 +20,9 @@ Implementation is authorized through structural Tranches 8–11 without further 
 - Never hash, pack or truncate semantic identity into `AdapterRouteToken`.
 - No family-local retry worker, retry queue, fragmentation engine or duplicate family runtime.
 - Registration/topology is fixed before Running; bounded storage and nonblocking ingress remain mandatory.
+- Every neutral non-Mesh transport binding has a finite lifecycle/generation. Restart invalidates prior handles/correlation; late callbacks/completions must never become current work.
+- Shutdown rejects new work, quiesces ingress, releases volatile transport capacity, waits only already-executing bounded work and never force-kills application execution.
+- Temporary backpressure/disconnection/restart must not create unbounded retry.
 - No structural-Tranche-9 version changes.
 
 ## Closed structural tranches
@@ -42,7 +45,7 @@ Source-first baseline heads before Tranche-9 writes:
 - Sockets `8c5322aa03e1e3b6408e1ed999f00263afbe159e`;
 - Serial `3ef07be4252908458110682291fd6b1c1d181262`;
 - WiFi `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`;
-- Radio `364f083c297e2072f7972f2fd63fcfa79cb6c1dd`.
+- Radio pre-R9 baseline `364f083c297e2072f7972f2fd63fcfa79cb6c1dd`.
 
 Direct-Radio Primitive envelope remains exactly:
 
@@ -84,7 +87,7 @@ RadioAdapters `819a2cd5e6f3dcec589d3dd586e5cc5ba1c54525`; outbound `34755755309`
 
 Radio `84c6bbcac36d959378dcc69366bc18921298c257`; redesign `34764194951`, transfer-ID lease `34764194938` — SUCCESS.
 
-The family-neutral lease/correlation seam protects outstanding direct-Radio semantic campaigns from transfer-ID reuse within one live Radio runtime. It does not interpret correlation as Primitive admission and does not claim restart-incarnation protection.
+The family-neutral lease/correlation seam protects outstanding direct-Radio semantic campaigns from transfer-ID reuse within one live Radio runtime. It does not interpret correlation as Primitive admission and did not yet claim restart-incarnation protection.
 
 ### R9-07 exact M1 — CLOSED; GREEN
 
@@ -113,81 +116,112 @@ Final promoted RadioAdapters checkpoint:
 - `984731e214affdfb1152e0d9cf9bdb01b0e36a75` (`Compile foundation umbrella with Command dependencies`).
 
 Exact-tip permanent workflows:
-- `RadioAdapters ingress contracts` `34771857945` — SUCCESS;
-- `RadioAdapters outbound contracts` `34771857991` — SUCCESS;
-- `RadioAdapters redesign contracts` `34771857946` — SUCCESS;
-- `RadioAdapters exact M1 contracts` `34771857903` — SUCCESS;
-- `RadioAdapters Event direct-Radio contracts` `34771858014` — SUCCESS;
-- `RadioAdapters Command direct-Radio contracts` `34771857995` — SUCCESS.
+- ingress `34771857945` — SUCCESS;
+- outbound `34771857991` — SUCCESS;
+- redesign `34771857946` — SUCCESS;
+- exact M1 `34771857903` — SUCCESS;
+- Event `34771858014` — SUCCESS;
+- Command `34771857995` — SUCCESS.
 
-Implemented Command direct-Radio composition:
+Command direct-Radio uses one frozen A2 family binding and real Command runtime semantics. Trusted Radio provenance is cross-checked against wire-carried Command origin/executor identity. Response-bearing request delivery uses bounded generation-safe correlation and exact M1. Terminal delivery failure publishes the existing `RequestDeliveryFailed` outcome exactly once. Duplicate terminal requests map `AlreadyAccepted` without handler re-execution. Durable recovered results reserve their semantic return route before freeze/start and re-enter the same A2/direct-Radio response lane without executing the handler again. `ESPressio_RadioAdapters.hpp` exports Command as a first-class public family binding.
 
-1. `src/ESPressio_CommandRadioAdapterBinding.hpp`
-   - one frozen Command family binding through real A2;
-   - fixed per-Type configuration only;
-   - canonical Command request/response wire remains Command-owned;
-   - inbound execution, durable terminal ledger, replay/idempotency and response semantics remain in the real Command runtime;
-   - no second executor/runtime/ledger, response worker, retry queue or alternate wire format.
+### R9-10 State direct-Radio — CLOSED; GREEN
 
-2. Semantic route boundary
-   - `RadioAdapterSemanticRouteBinding` resolves `DeviceIdentifier -> AdapterRouteToken` at composition scope;
-   - route tokens remain opaque transport facts and are never hashes/truncations of semantic identity;
-   - the same seam is intentionally reusable by State R9-10.
+Final promoted RadioAdapters checkpoint:
+- `285b184ffd84ddb1e97c4292154010c613eaa735` (`Compile foundation umbrella with State dependency`).
 
-3. Provenance
-   - trusted Radio ingress resolves a validated `OriginalSource` before A2 handoff;
-   - Command family parses the wire-carried request origin / response executor and requires exact equality with that validated source;
-   - physical Radio peer is never treated as Command semantic identity;
-   - family descriptor intentionally does **not** falsely claim lower-transport `ProvidesValidatedOriginalSource`, because Radio outbound lower transport does not authenticate ingress.
+Exact-tip permanent workflows — all SUCCESS:
+- `RadioAdapters ingress contracts` `34772597924`;
+- `RadioAdapters outbound contracts` `34772597753`;
+- `RadioAdapters redesign contracts` `34772597861`;
+- `RadioAdapters exact M1 contracts` `34772597866`;
+- `RadioAdapters Event direct-Radio contracts` `34772597831`;
+- `RadioAdapters Command direct-Radio contracts` `34772597748`;
+- `RadioAdapters State direct-Radio contracts` `34772597901`.
 
-4. Response-bearing delivery / exact M1
-   - bounded generation-safe request campaign retains only `CommandRequestDeliveryToken` + required-evidence fact;
-   - Radio terminal failure without required M1 produces `RequestDeliveryFailed`;
-   - exact `Accepted` M1 preserves the requester until the actual response arrives;
-   - generated executor response returns through A2/direct Radio;
-   - duplicate-terminal request maps `AlreadyAccepted` without a second handler execution.
+Implemented State direct-Radio composition:
 
-5. Durable recovered response
-   - `ReserveRecoveredResponse<TCommand>()` reserves the semantic return route before freeze/A2 start;
-   - recovery test seeds a persistent terminal result, starts a new local runtime incarnation, and proves the persisted result is emitted through direct Radio to the original requester without handler re-execution.
+1. `src/ESPressio_StateRadioAdapterBinding.hpp`
+   - one frozen State family binding through real A2;
+   - canonical State V1 encoding/decoding remains State-owned;
+   - State owns authoritative/latest truth, sessions, versions, baselines, resync, convergence and `NeedsConvergence`;
+   - no second State runtime, replica/session table, retry worker or convergence engine exists in RadioAdapters.
 
-6. Host contracts
-   - `command_radio_adapter_contract_test.cpp`: local request egress, trusted remote request execution, wrong service and forged source rejection;
-   - `command_radio_adapter_m1_test.cpp`: real R9-07 M1 controller, terminal delivery failure, exact M1 success, remote response, generated response and duplicate/idempotency;
-   - `command_radio_adapter_recovered_response_test.cpp`: durable recovered-response route and payload proof.
+2. Lifecycle-valid State transport contract
+   - current State validates `StateTransportBinding` during `Runtime::Start()` after family freeze;
+   - direct-Radio `ValidateTransport` therefore remains valid after freeze; freeze blocks mutation/admission, not validity of the configured immutable transport contract;
+   - `Wake()` coalesces State service work and never services inline during mutation.
 
-7. Public surface / dependency proof
-   - `ESPressio_RadioAdapters.hpp` exports the Command binding alongside Event;
-   - umbrella-consuming workflows explicitly include both family dependency graphs instead of succeeding only through narrow private-header includes;
-   - RadioAdapters currently has no `library.json` / `library.properties` manifest at repo root, so no metadata was invented during R9-09.
+3. Outbound convergence
+   - semantic destination `DeviceIdentifier` resolves through `RadioAdapterSemanticRouteBinding` to an opaque route token;
+   - State V1 is synchronously encoded into A2-owned bytes;
+   - bounded correlation retains only the existing immutable `StateConvergenceHandle`/generation facts;
+   - A2 owns pursuit; terminal insufficient evidence is reported back through the real State runtime and drives its existing exhaustion/`NeedsConvergence` behavior.
 
-## Active continuation — R9-10 State direct-Radio binding
+4. Trusted inbound provenance
+   - policy is resolved from the frozen RadioAdapters family binding;
+   - trusted Radio provenance supplies semantic `OriginalSource` independently of immediate peer facts;
+   - State V1 wire-carried semantic source must equal validated `OriginalSource` before `Runtime::AdmitRemote`;
+   - wrong service and forged semantic source fail closed;
+   - exact duplicates return `AlreadyAccepted` without duplicate State mutation.
 
-Source-first State baseline:
-- `ESPressio-State/primitives_redesign` `25637a7555e3a03f1d709bd8e37340bc4d545b6e`.
+5. Full integration evidence
+   - focused outbound contract proves real State publication -> A2 -> Radio lower transport -> terminal pursuit failure -> service wake -> real convergence exhaustion/`NeedsConvergence`;
+   - focused inbound contract proves exact State family admission/provenance/idempotency;
+   - trusted ingress integration proves real `AdmitDirectRadioLogicalMessage()` -> provenance resolver -> A2 ownership -> State family runtime, including forged-source rejection.
 
-Confirmed current State transport lifecycle:
-- `StateTransportBinding` exposes semantic-only `StateOutboundMessage<TState>` plus immutable `StateTransportContract` and bounded `Admit/Validate/Wake` thunks;
-- `Runtime::Initialize()` prepares Type runtimes, but transport validation occurs at `Runtime::Start()` through `StateTypeRuntime::ValidateStart()`;
-- therefore direct-Radio `ValidateTransport` must remain valid **after family freeze**; freeze controls mutation/admission, not validity of the immutable configured transport contract;
-- `Wake()` must only coalesce service work and must never service inline during State mutation;
-- State remains sole owner of sessions, versions, baseline/resync, convergence/NeedsConvergence and latest-truth semantics.
+6. Public package
+   - `ESPressio_RadioAdapters.hpp` exports State alongside Event and Command;
+   - all umbrella-consuming workflows explicitly carry the complete State dependency graph instead of relying on transitive/private-header compilation.
 
-R9-10 implementation direction:
-- port only the proven composition shape from `StateMeshAdapterFamilyBinding`, replacing Mesh route/service facts with `RadioAdapterSemanticRouteBinding` and `AdapterServiceClass`;
-- inbound direct-Radio State must validate wire-carried semantic source against trusted Radio `OriginalSource` before `Runtime::AdmitRemote`;
-- outbound destination Device resolves to an opaque Radio route token; canonical State V1 encoding remains State-owned;
-- bounded convergence campaign retains only generation/type/`StateConvergenceHandle`; A2 owns pursuit;
-- terminal insufficient evidence reports exhaustion back through the real State runtime and allows State to enter its own `NeedsConvergence` behavior;
-- no broadcast semantics, second State runtime, replica/session table, family-local retry worker or duplicate convergence engine in RadioAdapters;
-- generic exact M1 path supplies `DestinationPrimitiveAdmission` when the State convergence policy requires it.
+## Active continuation — R9-11 generation-safe restart/shutdown/stale-completion handling
+
+Source-first current heads at activation:
+- RadioAdapters `285b184ffd84ddb1e97c4292154010c613eaa735`;
+- Radio `84c6bbcac36d959378dcc69366bc18921298c257`.
+
+Locked lifecycle rules from Architecture section 30.11:
+- every neutral non-Mesh transport binding has a finite lifecycle and generation;
+- restart invalidates old handles/correlation without allowing late callbacks/completions to become current work;
+- runtime registration is frozen at Running;
+- shutdown rejects new work, resolves/releases transport-owned volatile capacity and does not force-kill application execution;
+- temporary backpressure, disconnection or restart does not become unbounded retry.
+
+Current audit truth before R9-11 writes:
+
+1. Generic A2 already has the correct family-neutral lifecycle substrate.
+   - `CompleteTransport()` requires exact `AdapterRecordIdentity` plus exact transport generation and counts stale completions diagnostically;
+   - `Shutdown()` stops new submissions, quiesces lower transport, drains queues, waits for already-executing workers, cancels/drains retained volatile work and clears bindings;
+   - this behavior must be reused, not duplicated in RadioAdapters.
+
+2. Current RadioAdapter lower transport is one-way quiescable but not restart-generation aware.
+   - `_quiesced` rejects further submission after shutdown;
+   - there is no explicit activation generation/re-arm contract;
+   - waiting M1 records can be cancelled by A2, but transport lifecycle identity is not represented independently.
+
+3. Current M1 controller is generation-safe inside one live attempt table, but transport callbacks/receipts identify an attempt externally only by current `(contention-domain, RadioTransferId[, route])`.
+   - slot tokens include a generation, but Radio terminal callbacks and the locked M1 control receipt do not carry that internal token;
+   - a fresh Radio runtime/scheduler may begin its uint16 transfer-id sequence again;
+   - therefore a sufficiently late result/receipt from a prior transport lifecycle must be prevented from aliasing a new attempt without altering the locked RadioTransport-v3 header or four-byte direct-Radio Primitive prefix.
+
+4. Current `RadioRuntime` is terminal after `Shutdown()` and invalidates providers/reassembly/peer handles. A later restart is represented by a freshly configured runtime instance.
+
+5. Current `RadioDomainScheduler::Shutdown()` drains volatile queues and detaches provider sinks but leaves `_stopping=true`; a same-object reinitialize is therefore not currently a valid restart. A fresh scheduler also resets its transfer-id issuer/recent window. R9-11 must make the controlled restart boundary explicit and generation-safe rather than relying on accidental object address/lifetime assumptions.
+
+6. `RadioAdapterReassemblyIngress` uses generation-safe bounded pending-receipt slots but has no explicit quiesce/drain lifecycle. Late A2 completion after transport shutdown must not send a receipt into a replacement transport lifecycle.
+
+R9-11 implementation must preserve the locked wire:
+- do not change RadioTransport-v3 layout;
+- do not change the exact four-byte RadioAdapters family/version prefix;
+- do not reinterpret System `RuntimeIncarnationId` as transport lifecycle generation;
+- do not introduce a family retry worker, polling loop, or unbounded stale-correlation store.
 
 ## Remaining Tranche-9 order
 
 - R9-08 Event direct-Radio — CLOSED;
 - R9-09 Command direct-Radio — CLOSED;
-- R9-10 State direct-Radio — ACTIVE;
-- R9-11 restart/shutdown/stale-completion hardening;
+- R9-10 State direct-Radio — CLOSED;
+- R9-11 restart/shutdown/stale-completion hardening — ACTIVE;
 - R9-12..R9-16 ESP-NOW migration/predecessor removal;
 - R9-17..R9-19 Sockets neutral transport/session migration;
 - R9-20 Serial classification/migration;
@@ -198,11 +232,11 @@ R9-10 implementation direction:
 
 ## Immediate continuation
 
-1. Reuse the proven Mesh State binding only as a composition reference; source truth is current State `25637a7555e3a03f1d709bd8e37340bc4d545b6e` and current RadioAdapters.
-2. Implement `ESPressio_StateRadioAdapterBinding.hpp` with fixed per-Type entries, semantic route resolution, trusted-source validation, canonical State V1 encode/decode and bounded convergence campaign feedback.
-3. Add focused real-State inbound/outbound host contracts before exporting State through the public umbrella.
-4. Prove destination-admission failure drives real State convergence exhaustion / `NeedsConvergence`; prove trusted inbound State mutates only through the real State runtime and forged source fails closed.
-5. Once focused State gates are green, export State through `ESPressio_RadioAdapters.hpp`, make umbrella workflow dependency graphs explicit, then promote only an exact-tip all-green R9-10 checkpoint.
-6. Maintain this file after every material checkpoint and regenerate the synchronized downloadable handoff with every user response.
+1. Define the smallest finite transport-lifecycle/generation seam needed to bind RadioAdapters lower transport, M1 correlation and ingress to one active direct-Radio lifecycle without changing locked wire formats.
+2. Make controlled Radio restart preserve or explicitly invalidate transfer-id/recent-correlation state so old `(domain, transfer-id)` facts cannot resolve current M1 attempts.
+3. Add explicit quiesce/drain behavior to M1 attempts and pending inbound receipt state; late completions after quiesce must be diagnostic/no-op and must not emit new transport traffic.
+4. Prove lower submissions and ingress are rejected after quiesce; prove shutdown releases volatile capacity and never force-kills family/application execution.
+5. Add focused restart/stale-result/stale-M1-receipt/provider-completion tests plus a permanent lifecycle workflow; promote R9-11 only at one exact all-green tip.
+6. Maintain this file after every material checkpoint and regenerate the synchronized downloadable handoff with user-facing checkpoints.
 
 After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 release preparation remains separate and unauthorized.
