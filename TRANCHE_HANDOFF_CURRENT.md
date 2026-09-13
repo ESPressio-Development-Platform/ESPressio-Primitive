@@ -12,76 +12,69 @@ Implementation is authorized through structural Tranches 8–11 without further 
 
 A2 owns logical pursuit/retry; Mesh owns routing/forwarding/application lifecycle; Radio R3 owns physical fragmentation/arbitration. Only family `Accepted`/`AlreadyAccepted` establishes destination Primitive admission. Mesh membership incarnation is never a System runtime incarnation. Adapter route/peer tokens remain opaque transport facts and never encode/truncate DeviceIdentifier. No family-local retry worker/queue/fragmentation architecture may be introduced.
 
-## Green baseline and newly promoted evidence
+## Green baseline and current promoted evidence
 
 Foundation F01–F08 and Tranches 2–7 remain closed. Mesh baseline is `e21a4a7d7f527db59171477e27e12263231a7069` (CI `34742545719` SUCCESS).
 
-Last fully green pre-egress MeshAdapters checkpoint is `fcec9570287cc12455c285f5c074491a3ebf215c`, workflow `34747763059` SUCCESS.
+Current MeshAdapters promoted tip is `bafadf0da761983a6493ef06469bfd77c9601054` (`Use committed Command fixture directly`). Combined workflow `34750545825` is SUCCESS against committed repository contents, including Mesh->A2 ingress, neutral A2->Mesh lower transport, real Event ingress/outbound, real Command ingress/idempotency, local no-response Command->A2 outbound, and real State ingress/session/version mutation.
 
-Combined workflow `34749673992` at MeshAdapters `165600415c8fc96000eba1cb0f815c9b2c5d673f` adds material green evidence before its first failure:
-- Mesh->A2 ingress build/run GREEN.
-- A2->Mesh lower transport build/run GREEN.
-- real Event ingress build/run GREEN.
-- local Event->A2 outbound build/run GREEN.
-- corrected Command fixture preparation GREEN.
-- real Command family ingress/idempotency build/run GREEN.
-- first failure was only `Build local Command-to-A2 outbound contract`; later State steps were skipped.
+Focused State outbound workflow `34750472189` is SUCCESS at MeshAdapters `f13049f67847dae6f22468ea4d236cc38ed64884`. It proves real State Runtime -> StateTransportBinding -> MeshAdapter -> A2 -> lower transport, then terminal pursuit failure -> A2 feedback -> coalesced service wake -> exact State convergence exhaustion -> dormant `NeedsConvergence`.
 
-Thus Event outbound is now green in the combined suite, and the corrected Command terminal-duplicate behavior is also combined-green.
-
-## Live branch truth — UNDER VALIDATION
-
-- MeshAdapters live tip: `11d5b4ddba22d9a38eaa86e539c85607afe2e273` (`Fix Command outbound contract compile surface`).
-- Adapters live tip: `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). Its own workflow `34748737223` is still queued; however every executing MeshAdapters workflow is already checking out this exact Adapters tip.
-- Repeated earlier MeshAdapters `startup_failure` runs with zero jobs are infrastructure-only and are not code evidence.
+Adapters live tip remains `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). Its native workflow `34748737223` remains queued with no execution result. This exact Adapters tip is the dependency used by successful MeshAdapters combined workflow `34750545825` and focused State workflow `34750472189`, providing integration evidence while native Adapters CI remains unavailable.
 
 Do not call Tranche 8 complete.
 
-## Event outbound — IMPLEMENTED; COMBINED GREEN
+## Event outbound — IMPLEMENTED; GREEN
 
-Event family binding synchronously encodes borrowed `EventLease` data into A2-owned bytes. `ESPressio_EventMeshAdapterOutboundTarget.hpp` is a normal Event `ExternalAdapter` target using frozen service/policy and a composition-owned opaque route token. `EventTypeRuntime` suppresses ExternalAdapter delivery for remote-origin occurrences, preventing re-egress.
+Event family binding synchronously encodes borrowed `EventLease` data into A2-owned bytes. `ESPressio_EventMeshAdapterOutboundTarget.hpp` is a normal Event `ExternalAdapter` target using frozen service/policy and a composition-owned opaque route token. `EventTypeRuntime` suppresses ExternalAdapter delivery for remote-origin occurrences, preventing re-egress. Dedicated workflow `34748517373` passed the Event outbound steps and combined workflow `34750545825` passes them again.
 
-`tests/event_mesh_adapter_outbound_test.cpp` uses the real A2 runtime. Dedicated workflow `34748517373` passed the Event outbound build/run steps, and combined workflow `34749673992` passed them again. Local Event V1 identity/message/service/route are preserved and remote-origin Event does not re-egress.
+Predecessor Event-only MeshAdapter transport/submission paths remain until replacement-family coverage and cleanup gates are complete.
 
-Predecessor Event-only MeshAdapter transport/submission files are not yet removed; removal remains gated on the remaining replacement-family validation and Tranche-8 cleanup.
+## Command ingress/idempotency — IMPLEMENTED; GREEN
 
-## Command ingress/idempotency — COMBINED GREEN
+The terminal duplicate contract is now repository truth in `tests/command_mesh_adapter_binding_test.cpp`: terminal ledger state may precede response-slot release, so a duplicate may transiently return `TemporarilyUnavailable` before converging to `AlreadyAccepted`, never re-running the handler. Rejected broadcast policy resolution uses independent provenance storage. Workflow-time fixture mutation has been removed; combined success `34750545825` validates committed source directly.
 
-The prior duplicate failure was a test timing assumption. Command commits terminal ledger state before response-slot routing/release necessarily completes. A duplicate in that bounded interval may be `TemporarilyUnavailable`; after release it converges to `AlreadyAccepted` without handler re-execution. Combined run `34749673992` passed the corrected Command fixture build and runtime.
+## Command local egress — IMPLEMENTED; NO-RESPONSE PATH GREEN
 
-TODO remains: persist those fixture edits directly into `tests/command_mesh_adapter_binding_test.cpp` and remove workflow-time source mutation.
+The two-stage `CommandMeshAdapterFamilyBinding` supports Command startup ordering: configure Type/format/policy/encoder before `Command::Runtime::Initialize`, bind outbound transport/recovered-response reservation during initialize, attach the inbound Runtime afterwards, then freeze before start.
 
-## Command local egress — IMPLEMENTED; UNDER VALIDATION
+Local request leases are synchronously copied into A2-owned bytes and semantic destinations resolve only via `MeshRouteBinding`. Response-bearing request-delivery tokens are held only in a bounded fixed correlation table; no payload, route, deadline, attempt or retry schedule is retained. A2 remains sole pursuit owner. Executor and recovered responses use the same A2 encoder with disjoint correlations.
 
-The two-stage `CommandMeshAdapterFamilyBinding` supports Command startup ordering: configure Type/format/policy/encoder before `Command::Runtime::Initialize`, bind outbound transport/recovered-response reservation during initialize, attach inbound Runtime afterwards, then freeze before start.
+`tests/command_mesh_adapter_outbound_test.cpp` builds and runs green in combined workflow `34750545825`, proving real no-response Command Runtime -> MeshAdapter -> A2 -> lower transport and preservation of route/service, Command Type/Id, local runtime identity and payload.
 
-Local request leases are synchronously copied to A2 bytes and semantic destinations resolve only via `MeshRouteBinding`. Response-bearing delivery-failure tokens are held only in a bounded fixed correlation table; A2 remains sole pursuit owner. Executor and recovered responses use the same A2 encoder with disjoint correlations.
+Still open: response-bearing request terminal-delivery-failure correlation and recovered-response reservation/routing coverage.
 
-Combined run `34749673992` isolated three compile-surface defects in the new no-response outbound test: templated assert macro shielding, use of `CommandSubmissionResult` boolean conversion rather than nonexistent `Accepted()`, and `CommandOutboundBinding` requiring a non-const validation-owner member. These are corrected in source at live tip `11d5b4d…`; the test now uses a tiny mutable binding-owner shim that delegates to the family without changing production semantics. The resulting rerun is pending/running.
+## A2 mixed-policy correction — IMPLEMENTED; INTEGRATION GREEN / NATIVE CI PENDING
 
-Response-bearing request-delivery-failure and durable recovered-response coverage remain open.
+Adapters `b8a1722…` preserves the Initialize-time strongest-capability proof while allowing a `NoRemoteEvidence` occurrence to coexist in a family containing Types requiring `DestinationPrimitiveAdmission`. Per-occurrence evidence validation remains fail-closed. `tests/test_adapter_mixed_policy.cpp` covers both strongest-capability rejection and valid mixed per-occurrence submissions.
 
-## A2 mixed-policy correction — IMPLEMENTED; UNDER VALIDATION
+Native Adapters workflow `34748737223` remains queued, but MeshAdapters combined success `34750545825` and focused State success `34750472189` both compile and execute against this exact Adapters tip.
 
-Adapters `b8a1722…` preserves the Initialize-time strongest-capability proof while allowing a `NoRemoteEvidence` occurrence to coexist in a family containing Types requiring `DestinationPrimitiveAdmission`. Per-occurrence evidence validation remains fail-closed. `tests/test_adapter_mixed_policy.cpp` proves both sides. The repository workflow remains queued.
+## State outbound/convergence — IMPLEMENTED; GREEN
 
-## State outbound/convergence — IMPLEMENTED; UNDER VALIDATION
+State egress uses the real `StateTransportBinding<TState,TFormat>`. MeshAdapters binds A2, `MeshRouteBinding`, and a coalesced service wake. It validates role-specific semantic source identity, resolves the opposite semantic role through `MeshRouteBinding`, synchronously encodes canonical State V1 into A2-owned bytes, and retains no payload/route/retry/deadline state.
 
-State egress continues to use the real `StateTransportBinding<TState,TFormat>`. MeshAdapters binds a real A2 runtime, `MeshRouteBinding`, and a coalesced service wake. It validates role-specific semantic source identity, resolves the opposite semantic role through `MeshRouteBinding`, synchronously encodes canonical State V1 into A2-owned bytes, and stores no payload/route/retry/deadline state after submission.
+Only messages carrying an existing `StateConvergenceHandle` reserve a fixed correlation slot containing Type entry, generation and immutable handle. A2 owns pursuit. Required evidence frees the slot. Terminal pursuit without required evidence marks bounded `ExhaustionPending`, wakes service context, and `Service()` reports the handle through real `State::Runtime::ReportConvergenceExhausted<TState>()`; State alone owns dormant `NeedsConvergence`, sessions, versions, baselines, resync and rearm.
 
-Only messages carrying an existing `StateConvergenceHandle` reserve a fixed correlation slot containing only Type entry, generation and immutable handle. A2 owns pursuit. Required evidence frees the slot. Terminal pursuit without required evidence marks bounded `ExhaustionPending`, wakes service context, and `Service()` reports the handle through real `State::Runtime::ReportConvergenceExhausted<TState>()`; State alone owns dormant `NeedsConvergence`, sessions, versions, baselines, resync and rearm.
+Validation resolved two exact defects: the service thunk now returns the real `StateTransportAdmission`, and State Start validation now requires the MeshAdapter family to be frozen. Transport binding is still initialized pre-freeze, while `State::Runtime::Start()` validates the frozen composition. Focused workflow `34750472189` is fully SUCCESS and combined workflow `34750545825` is also SUCCESS with the expanded State header present.
 
-Focused workflow `34749674043` first exposed a name collision and `-Werror` formatting problems; fixed at `61a715e…`. Focused workflow `34749806892` then isolated one remaining compile mismatch: `State::Runtime::ServiceLatest<TState>()` returns `StateTransportAdmission`, while the type-erased service thunk was declared `bool`. Required fix: make the thunk return `StateTransportAdmission` (or explicitly convert at the thunk) and count only an accepted admission as progress. No State ownership or convergence semantics need changing.
+## Locked non-regression rules
+
+- Adapter queue ownership is never M1 `Accepted`.
+- Never derive runtime incarnation from Mesh membership.
+- Never pack/truncate DeviceIdentifier into a route token.
+- Keep semantic provenance distinct from immediate route/peer facts.
+- No family-local retry worker, retry queue or fragmentation architecture.
+- No predecessor Event node/selective/broadcast transport runtimes under new names.
+- Do not weaken fail-closed provenance or broadcast restrictions to satisfy tests.
 
 ## Immediate continuation
 
-1. Fix the exact State `ServiceLatest` thunk return mismatch and rerun focused State + combined MeshAdapters validation.
-2. Promote/fix Command local egress from the `11d5b4d…` rerun result.
-3. Persist Command fixture cleanup directly in source and delete the workflow mutation step.
-4. Add response-bearing Command failure-correlation and recovered-response contracts.
-5. Obtain/resolve Adapters `b8a1722…` native workflow evidence.
-6. Remove predecessor Event-only MeshAdapter transport/submission files once replacement coverage is fully green.
-7. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency/documentation gates and formally close Tranche 8.
-8. Update this file after every material checkpoint and before any stop.
+1. Add response-bearing Command request terminal-delivery-failure coverage through real Command -> MeshAdapter -> A2 feedback and verify exactly one `RequestDeliveryFailed` completion without a second retry engine.
+2. Add recovered-response reservation/routing coverage through the same A2 encoder and bounded response-destination table.
+3. Re-check native Adapters workflow `34748737223`; if GitHub still does not allocate a runner, retain the distinction between native-CI pending and integration-green evidence.
+4. Remove predecessor Event-only MeshAdapter transport/submission paths only after Event/Command/State replacement coverage is fully green.
+5. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency/documentation gates and formal Tranche 8 closure report.
+6. Update this file after every material checkpoint and before any stop.
 
 After Tranche 8, continue authorized structural Tranches 9–11. Tranche 12 release preparation remains separate.
