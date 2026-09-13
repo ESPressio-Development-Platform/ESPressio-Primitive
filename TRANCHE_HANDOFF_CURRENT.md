@@ -65,54 +65,60 @@ Continue immediately under standing authorization.
 
 ### Live in-progress checkpoint — 2026-09-13
 
-The live tips were reconciled before continuing:
+Current reconciled/validated tips:
 
 - `ESPressio-Mesh/primitives_redesign` = `e21a4a7d7f527db59171477e27e12263231a7069` (`Restore Clock reference regression semantics`).
-- `ESPressio-MeshAdapters/primitives_redesign` = `d29065341cee134120bfe18351c50bcec9bbcdfd` (still the audited predecessor/Event-only baseline at this checkpoint).
+- `ESPressio-MeshAdapters/primitives_redesign` = `93f1092f5bb00e08d314e0ba7a06bc633119ad5f` (`Add bounded Mesh to A2 ingress correlation`).
 - `ESPressio-Adapters/primitives_redesign` = `e43076c6c158b9036da4a3424b77043bb5910975` (closed Tranche-6 substrate).
 - `ESPressio-Radio/primitives_redesign` = `364f083c297e2072f7972f2fd63fcfa79cb6c1dd` (closed Tranche-7 substrate at reconciliation time; re-query before any later Radio-dependent write).
 
-Mesh is **52 fast-forward commits ahead** of the Section-29 planning baseline `2e55bfb2359b2c80dc3cdbb5917776caca92083f`. The current delta already contains implementation/test work in the locked M8 areas including:
-
-- exact neutral Primitive admission mapping / `PrimitiveReceiverRegistry` migration;
-- Mesh-local six-class relay Q1 capacity and deterministic relay-capacity profile;
-- non-increasing remaining-residence helpers and v1 broadcast wire migration;
-- authenticated broadcast lifecycle with network Seen/Forwarded separated from local `DeferredLocal` admission/retry;
-- family-neutral broadcast-policy boundary;
-- next-hop submission through managed Radio rather than predecessor direct fragment bursts;
-- Mesh-only clock reference/topology orchestration and source-lineage/failover handling;
-- `MeshRuntimeWorker` migration away from predecessor `PrecisionThread`/`std::function` execution;
-- lifecycle observer replacement with fixed sink mechanics and resource-accounting updates.
+Mesh is **52 fast-forward commits ahead** of the Section-29 planning baseline `2e55bfb2359b2c80dc3cdbb5917776caca92083f`. The current delta already contains implementation/test work in the locked M8 areas including exact neutral Primitive admission, Mesh-local six-class relay Q1/profile, non-increasing remaining residence, authenticated Seen/Forwarded plus local `DeferredLocal`, family-neutral broadcast policy, managed-Radio next-hop submission, Mesh-only clock-reference orchestration, generic Thread runtime-worker migration, lifecycle fixed sinks and resource-accounting updates.
 
 Exact-head Mesh redesign workflow run **`34742545719` — SUCCESS** at `e21a4a7d7f527db59171477e27e12263231a7069`.
 
-Do **not** yet claim Tranche 8 complete from this checkpoint. MeshAdapters has not yet been migrated on its live branch, and the full M8 completion gate (including Event/Command/State frozen A2 bindings, cross-repo integration/dependency guards, final resource/security/fuzz/multi-node validation, docs/report) remains to be closed.
+### MeshAdapters checkpoint 1 — async exact-M1 ingress correlation
+
+MeshAdapters was previously the untouched Event-only predecessor at `d29065341cee134120bfe18351c50bcec9bbcdfd`. The first replacement checkpoint is now pushed at:
+
+`93f1092f5bb00e08d314e0ba7a06bc633119ad5f` — `Add bounded Mesh to A2 ingress correlation`
+
+Workflow run **`34744239828` — SUCCESS**.
+
+New `ESPressio_MeshAdapterIngress.hpp` establishes the essential Mesh/A2 semantic bridge:
+
+- explicit `MeshRelayServiceClass` -> neutral `AdapterServiceClass` mapping (no numeric ABI shortcut);
+- bounded authenticated-occurrence correlation keyed by Mesh source + membership incarnation + Mesh message ID;
+- first Mesh `Receive()` transfers complete bytes into A2 and returns `TemporarilyUnavailable`, **not** destination-admission evidence;
+- the exact family M1 later returned by A2 `AdapterInboundCompletionTarget` is retained;
+- A2 completion advances a non-wrapping/saturating adapter-admission generation and emits a fixed wake;
+- the subsequent Mesh `DeferredLocal` retry returns the retained exact M1 without a second A2 enqueue, then releases the correlation slot;
+- pending duplicate retries never duplicate A2 work;
+- only exact family `Accepted` / `AlreadyAccepted` can later establish destination Primitive admission;
+- Mesh membership incarnation is deliberately **not** forged into Primitive `RuntimeIncarnationId`; stronger A2 validated-original-source provenance stays unset until genuinely established by family/runtime validation.
+
+The checkpoint test proves pending duplicate suppression, Accepted/AlreadyAccepted completion consumption, admission-generation wake and exact service-class mapping against the live Mesh/Adapters/System/Primitive branches.
+
+**Important follow-up:** the current bridge uses a mutex for its bounded correlation table. Before Tranche-8 closure, change the synchronous remote `Receive()` acquisition to a non-blocking try-lock path (completion-side short serialization may block); remote ingress must not become an unbounded blocking path.
+
+Do **not** claim Tranche 8 complete yet. MeshAdapters still needs the frozen Event/Command/State family bindings, neutral Mesh lower-transport seam, predecessor Event-only eradication, complete family policy gates, and tranche-wide M8-23/M8-24 validation/docs/report.
+
+### Exact semantic issue already resolved for continuation
+
+Mesh `IPrimitiveReceiver::Receive` is synchronous, while A2 executes the actual family admission asynchronously on a T1 worker. It is **incorrect** to return `Accepted` merely because A2 owns the bytes. The implemented correlation bridge solves this without changing M1 or polling: the first call returns retryable local admission, A2 completion changes the admission generation/wake, and Mesh's existing `DeferredLocal` table retries only after that generation changes. A successor must preserve this design and must not collapse A2 queue acceptance into destination-family admission evidence.
 
 ### Immediate continuation point
 
-1. Re-read the current Mesh core public handoff surfaces and classify any remaining M8-01..M8-20 gaps against the exact `e21a4a7d…` tree; preserve all 52 existing commits.
-2. Migrate `ESPressio-MeshAdapters/primitives_redesign` from `d2906534…` to frozen A2 Event/Command/State family bindings (M8-21/M8-22), with no source-local redispatch.
-3. Validate MeshAdapters against the closed Adapters/Event/Command/State/Mesh branch APIs and add exact family policy gates for `NoRemoteEvidence`, response-bearing Command rejection and invalid/stateless State broadcast rejection.
-4. Complete M8-23/M8-24 tranche-wide security/resource/fuzz/multi-node/dependency tests, manifests/workflows/docs and a formal implementation report.
-5. Update this living handoff after every material checkpoint and before any session/usage stop with exact branch heads and CI run IDs.
+1. Make `MeshAdapterIngressBridge::Receive()` use non-blocking correlation-lock acquisition and return a retryable M1 fact on lock contention.
+2. Build one frozen family composition layer per Primitive family over A2, with per-Type fixed thunks so family runtime receipt/idempotency/codec logic is preserved rather than bypassed.
+3. Rebuild Event binding first (M8-21), using Event `Runtime` inbound semantics and `EventOutboundBinding`/real Event wire policy rather than direct descriptor admission that would bypass family receipt semantics.
+4. Add Command and State bindings (M8-22), preserving exact family request/response/convergence semantics. Generic Mesh broadcast remains NoRemoteEvidence-only; reject response-bearing Command broadcast and State broadcast as required by current Mesh policy.
+5. Add one neutral A2 `LowerTransportBinding` for Mesh outbound submission. MeshAdapters maps neutral service -> Mesh relay service explicitly; it does not create another transport worker/retry/fragmentation engine.
+6. Remove predecessor Event-only MeshAdapter transport/submission files and obsolete tests only after replacement coverage exists; no compatibility shims.
+7. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency tests, manifests/workflows/README/source comments and formal Tranche-8 implementation report.
+8. Re-audit Mesh core umbrella/manifests during M8-24: current `ESPressio_Mesh.hpp` at `e21a4a7d…` does not yet include several newly added M8 public headers, so final canonical-surface integration still needs an explicit gate.
+9. Update this living handoff after every material checkpoint and before any session/usage stop with exact branch heads and CI run IDs.
 
-The locked M8-01..M8-24 sequence remains authoritative. The decisive completion requirements include:
-
-- exact neutral M1 seven-disposition admission mapping at every Mesh family boundary;
-- only Accepted/AlreadyAccepted creates DestinationPrimitiveAdmission;
-- network Seen/Forwarded state independent of delayed local admission;
-- DeferredLocal retry is local only, wake/capacity-generation driven, never network re-forward;
-- source node is never redispatched through its own remote broadcast path;
-- finite non-increasing remaining residence that duplicate/retry cannot reset;
-- generic NoRemoteEvidence family restrictions, including rejection of response-bearing Command broadcast and invalid/stateless State broadcast;
-- complete atomic Mesh relay record+bytes+workspace Q1 ownership and membership compatibility profile;
-- all selected next-hop physical work goes through managed Radio Q1/R3; Mesh never becomes a physical fragment arbiter;
-- Mesh owns reference topology/trust selection only; Radio owns timestamp exchange; Timing owns estimator/discipline;
-- reference failover resets source-specific estimator evidence and propagates conservative uncertainty;
-- migrate MeshRuntimeWorker away from PrecisionThread/std::function/polling to generic Thread composition;
-- no canonical Observable/Event/Command/State dependency leaks into Mesh core;
-- frozen Event/Command/State MeshAdapter family bindings through ESPressio-Adapters;
-- deterministic resource accounting, host/security/fuzz/multi-node tests, dependency guards and documentation before claiming completion.
+The locked M8-01..M8-24 sequence and completion gate in Section 29 remain authoritative.
 
 ## After Tranche 8
 
