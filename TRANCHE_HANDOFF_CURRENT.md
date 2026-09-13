@@ -185,20 +185,59 @@ Implemented exact-M1 surfaces:
 
 R9-07 does **not** claim restart/runtime-incarnation stale-packet safety. That remains R9-11. The current generation/lease proof covers one live Radio runtime lifetime only.
 
-## Active continuation — R9-08 Event direct-Radio binding
+### R9-08 Event direct-Radio binding — CLOSED; GREEN
 
-R9-08 is next. The implementation must reuse the existing Event family/A2 binding and the generic direct-Radio transport surfaces above. RadioAdapters must not create a second Event runtime, Event retry loop, Event queue, or Event wire protocol.
+Final promoted RadioAdapters checkpoint:
+- `a8092a2d914f7a0abf1a35c005e105f3c7d5a650` (`Add host stubs to Event-enabled outbound compile`).
+
+Exact permanent workflows at that tip:
+- `RadioAdapters ingress contracts` `34769579671` — SUCCESS;
+- `RadioAdapters outbound contracts` `34769579684` — SUCCESS;
+- `RadioAdapters redesign contracts` `34769579653` — SUCCESS;
+- `RadioAdapters exact M1 contracts` `34769579682` — SUCCESS;
+- `RadioAdapters Event direct-Radio contracts` `34769579729` — SUCCESS.
+
+Implemented Event direct-Radio composition:
+
+1. `src/ESPressio_EventRadioAdapterBinding.hpp`
+   - one frozen Event family binding through the generic A2/RadioAdapter runtime;
+   - fixed pre-freeze per-Event-Type entries only;
+   - canonical Event V1 encoding delegated to the existing Event runtime/wire helpers;
+   - remote Event admission delegated to the existing Event runtime so receipt/idempotency/source-loop semantics remain family-owned;
+   - per-Type `AdapterServiceClass` and P2 evidence policy are frozen composition facts;
+   - no Event queue, retry loop, second Event runtime, RTTI registry, dynamic policy registry, or alternate Event wire protocol in RadioAdapters.
+
+2. `src/ESPressio_EventRadioAdapterOutboundTarget.hpp`
+   - normal Event external-adapter target;
+   - synchronous occurrence encode into A2-owned bytes;
+   - composition-owned opaque direct-Radio route token;
+   - A2 admission/capacity mapping back to Event transport status;
+   - remote-origin Event retains Event-owned source-loop suppression and is not re-egressed.
+
+3. Generic RadioAdapter ingress resolver seam now receives the already-neutral mapped `AdapterServiceClass` in addition to protocol/bytes. This is required because one frozen Event family can contain Types using different service classes; a family-wide service union cannot safely validate Type-specific service selection. Generic Radio remains family-neutral and does not interpret Event semantics.
+
+4. Host contracts
+   - `event_radio_adapter_contract_test.cpp`: real local Event dispatch -> Event external target -> A2 -> RadioAdapter lower transport; verifies exact outer four-byte direct-Radio prefix plus unchanged canonical Event V1 wire. Also proves trusted remote Radio Event -> RadioAdapter -> A2 -> real Event runtime dispatch, exact family completion, wrong-service rejection before A2, and zero re-egress for remote-origin Event.
+   - `event_radio_adapter_policy_test.cpp`: evidence-requiring Event Type advertises `DestinationPrimitiveAdmission`, resolves its exact configured Radio service, and is therefore routed into the already-closed generic R9-07 exact-M1 path rather than treating peer/link ACK as Primitive admission.
+
+The public `ESPressio_RadioAdapters.hpp` umbrella now exports the Event direct-Radio binding. General RadioAdapters workflows include the same host Arduino/Timing stub surface needed by the Event dependency graph, and all five workflows are green together at the exact promoted tip.
+
+## Active continuation — R9-09 Command direct-Radio binding
+
+R9-09 is next. Source-first rebaseline `ESPressio-Command/primitives_redesign` and current RadioAdapters before mutation. The implementation must reuse the existing Command family/A2 binding and generic direct-Radio lower transport/M1 controller. RadioAdapters must not create a second Command runtime, executor, durable ledger, response worker, retry queue, or alternate Command wire format.
 
 Required proof direction:
-- local Event dispatch -> existing Event external/A2 encoder -> direct-Radio lower transport -> exact four-byte RadioAdapter prefix + canonical Event family wire;
-- trusted direct-Radio Event -> RadioAdapter ingress -> A2 -> existing Event runtime admission/dispatch;
-- remote-origin Event must retain Event-owned source-loop suppression and must not re-egress;
-- Event P2 evidence policy is honored generically: NoRemoteEvidence uses lower evidence; destination-admission policy uses the closed R9-07 exact-M1 path.
+- local Command request -> existing Command transport encoder -> A2 -> direct-Radio lower transport -> exact four-byte RadioAdapter prefix + canonical Command family wire;
+- trusted direct-Radio Command request -> RadioAdapter ingress -> A2 -> real Command runtime admission/execution;
+- response-bearing request preserves bounded request-delivery token/correlation semantics and exact M1 evidence policy;
+- generated Command response routes back through A2/direct-Radio without family-local retry ownership;
+- replay/idempotency/terminal-ledger and recovered-response behavior remain Command-owned;
+- wrong service/provenance/source-loop cases fail closed before mutating Command semantic state.
 
 ## Remaining Tranche-9 order
 
-- R9-08 Event direct-Radio binding — ACTIVE NEXT;
-- R9-09 Command direct-Radio binding;
+- R9-08 Event direct-Radio binding — CLOSED;
+- R9-09 Command direct-Radio binding — ACTIVE NEXT;
 - R9-10 State direct-Radio binding;
 - R9-11 restart/shutdown/stale-completion hardening;
 - R9-12..R9-16 ESP-NOW migration/predecessor removal;
@@ -211,11 +250,11 @@ Required proof direction:
 
 ## Immediate continuation
 
-1. Source-first revalidate `ESPressio-Event/primitives_redesign` and current RadioAdapters tip.
-2. Read the locked R9-08 architecture package and map Event's existing A2 binding/encoder/admission seams onto the generic RadioAdapter registry/lower transport.
-3. Implement only the minimal Event-to-RadioAdapter composition binding required to select frozen service/policy/provenance/topology; do not duplicate Event runtime semantics.
-4. Add real host contracts for local Event egress, remote Event ingress/dispatch, source-loop suppression, and evidence-policy selection.
-5. Promote only green R9-08 evidence here, then continue R9-09 Command.
+1. Source-first revalidate `ESPressio-Command/primitives_redesign` and RadioAdapters `a8092a2d914f7a0abf1a35c005e105f3c7d5a650`.
+2. Map Command's current transport binding, canonical request/response encoders, executor-response handoff, request-delivery token, replay/idempotency ledger and recovered-response seams onto the generic frozen RadioAdapter registry/A2/lower transport.
+3. Implement only the minimal Command-to-RadioAdapter composition binding; no duplicate Command runtime or retry engine.
+4. Add real host contracts for local no-response request egress, response-bearing request exact-M1 failure/success, remote request admission/execution/response egress, replay/idempotency, wrong service/provenance, and recovered response routing as required by the locked R9-09 gate.
+5. Promote only exact-tip green R9-09 evidence here, then continue R9-10 State.
 6. Maintain this file after every material checkpoint and regenerate the synchronized downloadable handoff with every user response.
 
 After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 release preparation remains separate and unauthorized.
