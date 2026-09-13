@@ -2,95 +2,66 @@
 
 Date: 2026-09-13
 
-This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff(20260912-141121).md` remains authoritative for CLOSED/LOCKED architecture, dependency order and tranche gates. This file is authoritative for the latest implementation position.
+This is the live continuation card. The architecture handoff remains authoritative for CLOSED/LOCKED design, dependency order, tranche gates and historical evidence. This file records only the current implementation position and immediate continuation state.
 
-## Standing authorization
+## Authorization boundary
 
-The user explicitly authorizes implementation through remaining **structural** Tranches 8–11 without further permission pauses. Still NOT authorized unless separately requested: version changes, CHANGELOG/release finalization, `main` reintegration, tags, releases, Wiki publication, force pushes or backward-compatibility shims. Tranche 12 release preparation remains separately consequential.
+Implementation is authorized through structural Tranches 8–11 without further permission pauses. Version changes, release/CHANGELOG finalization, `main` reintegration, tags, releases and Wiki publication remain outside this standing authorization.
 
-## Closed tranches
+## Closed/green baseline
 
-Foundation F01–F08, Tranche 2 Task/Timing/Threads, Tranche 3 Event, Tranche 4 Command and Tranche 5 State are closed per the architecture handoff. Tranche 5 closure: State `25637a7555e3a03f1d709bd8e37340bc4d545b6e`, CI `34703052958` SUCCESS. Tranche 6 Adapters historical closure: `e43076c6c158b9036da4a3424b77043bb5910975`, CI `34708547392` SUCCESS. Tranche 7 Radio/providers closed: Radio `364f083c297e2072f7972f2fd63fcfa79cb6c1dd` / evidence `2a33d86c782ef25a25750ccd2b50b28191abd161`, CI `34719879383`; ESP32 `b29b53bc438a0d5013075ce58a501424c689c0a0`, CI `34716648904`; NRF24 `a641199da7d4e5101e4d2c871715a9c870bdc531`, CI `34716303385`.
+Foundation F01–F08 and Tranches 2–7 are closed per the architecture handoff. Current relevant provider baselines remain Mesh `e21a4a7d7f527db59171477e27e12263231a7069` (CI `34742545719` SUCCESS) and Adapters `77e034ec8d3efa4a8c8e6df0ef2f6a405f8dd98a`.
 
-Physical nonclaims remain: Raw80211 RX capture Estimated until characterized; BLE cannot carry the exact 32-byte Clock response; NRF24 has no bounded/certified RX timestamp.
+Last fully green MeshAdapters checkpoint is `fcec9570287cc12455c285f5c074491a3ebf215c`, workflow `34747763059` SUCCESS. That checkpoint validates Mesh->A2 ingress correlation, A2->Mesh lower transport, real Event ingress, real Command ingress/executor-response routing with Persistence/replay/idempotency, and real State ingress/session/version mutation with role-correct provenance.
 
-## Tranche 8 — current branch truth
+A2 owns logical pursuit/retry; Mesh owns routing/forwarding/application lifecycle; Radio R3 owns physical fragmentation/arbitration. Only family `Accepted`/`AlreadyAccepted` establishes destination Primitive admission. Mesh membership incarnation is never a System runtime incarnation. `ImmediatePeer.Token` is only an opaque transport route fact.
 
-- Mesh `primitives_redesign`: `e21a4a7d7f527db59171477e27e12263231a7069`, CI `34742545719` SUCCESS.
-- Adapters `primitives_redesign`: `77e034ec8d3efa4a8c8e6df0ef2f6a405f8dd98a`. Existing `AdapterSemanticProvenance::ImmediatePeer.Token` remains the opaque peer-route fact; do not expand family admission merely to pass routes.
-- MeshAdapters `primitives_redesign`: **`fcec9570287cc12455c285f5c074491a3ebf215c`** (`Validate real State MeshAdapter binding`).
-- exact MeshAdapters redesign workflow **`34747763059` — SUCCESS**.
-- therefore the current **green MeshAdapters checkpoint is `fcec9570287cc12455c285f5c074491a3ebf215c`**.
+## Live branch truth — UNDER VALIDATION
 
-Do NOT call Tranche 8 complete yet. Full locally-originated/outbound family composition, predecessor removal, M8-23/M8-24 gates, manifests/workflows/docs/umbrella audit, Command fixture cleanup and formal Tranche-8 closure remain open.
+MeshAdapters `primitives_redesign` is now `e235563b822876c7827e79a159a03cb0d1d35430` (`Add Event external target backed by A2`). This tip is not yet promoted to green.
 
-## Green integration at `fcec957…`
+### Event outbound work now present
 
-Workflow `34747763059` validates together:
+`ESPressio_EventMeshAdapterBinding.hpp` now includes a real A2 outbound encoder for each frozen Event Type/format entry. Encoding is synchronous from a borrowed `EventLease` into Adapter-owned bytes; neither A2 nor MeshAdapters retains the Event object or lease.
 
-- bounded Mesh -> A2 ingress correlation;
-- neutral A2 -> Mesh lower transport;
-- real Event family MeshAdapter binding;
-- real Command family MeshAdapter binding with actual Command runtime, Persistence, response reservation/routing and replay/idempotency;
-- real State family MeshAdapter binding with actual State runtime/session/version mutation and role-correct provenance.
+`ESPressio_EventMeshAdapterOutboundTarget.hpp` now provides a normal Event `ExternalAdapter` target. It submits through `AdapterRuntime::SubmitOutbound` using the frozen Event service/policy and a composition-owned opaque `AdapterRouteToken`. Route selection is binding topology, not occurrence-local route state. Broadcast validation rejects policies requiring destination Primitive admission.
 
-A2 owns logical pursuit/retry, Mesh owns routing/forwarding/application lifecycle, and Radio R3 owns physical fragmentation/arbitration. No duplicate family-local retry, worker, route or fragmentation system was introduced.
+`EventTypeRuntime` already suppresses `ExternalAdapter` delivery for remote-origin Event occurrences, so this replacement does not recreate the predecessor remote/local redispatch path. A2 remains sole pursuit/retry owner.
 
-### Mesh -> A2 M1 correlation rules
+This code is still unvalidated. Required next evidence is a local Event dispatch -> external target -> A2 encode/submission contract, including capacity-unavailable/wake behavior. Capacity recovery must use `EventOutboundBinding::NotifyCapacityChanged`; no polling loop is permitted.
 
-Correlation key is authenticated Mesh source device + Mesh membership incarnation + Mesh message ID. First Mesh receive transfers complete bytes to A2 and remains retryable; Adapter queue ownership is never destination Primitive admission. Exact family M1 is retained later through `AdapterInboundCompletionTarget`; generation wake drives `DeferredLocal` retry without re-enqueueing A2. Only family `Accepted`/`AlreadyAccepted` establishes destination Primitive admission. Try-lock behavior keeps ingress bounded.
+## Command state
 
-Mesh membership incarnation is NEVER a System/Primitive runtime incarnation. Runtime identity may only come from authenticated family bytes after its DeviceIdentifier is proven equal to authenticated Mesh source.
+Inbound Command and executor-response routing remain green. Locally-originated request egress through `CommandOutboundBinding` is still open. It must provide bounded response-bearing delivery-failure correlation and recovered-response routing without adding a second retry engine.
 
-### Event — GREEN
+Command fixture cleanup remains open: persist the separate broadcast provenance object in the source, replace the broad Serializable include with the serialization-macros include, then remove the temporary Command-only warning suppression.
 
-Event binding is frozen/fixed, delegates to real `Event::Runtime`, preserves receipt/idempotency/source-loop behavior and rejects generic broadcast for `DestinationPrimitiveAdmission`. Historical dedicated Event checkpoint `bb1c1ff1fe6f6bd60c3f79deb3183f7961198841`, run `34744901323` SUCCESS.
+## State state
 
-### Command — GREEN
+Inbound State remains green. Locally-originated `StateTransportBinding` -> A2 encoding/routing remains open, together with convergence-exhaustion feedback and non-polling service wake composition. State session/version/baseline/resync/convergence state remains family-owned.
 
-`ESPressio_CommandMeshAdapterBinding.hpp` is validated at `f09d5a1…`, run `34747588394` SUCCESS and remains green in `34747763059`. Response-bearing inbound requests receive bounded pre-reserved `CommandRemoteResponseDestination`; response delivery is handed synchronously to A2, after which A2 owns pursuit. Response-bearing request broadcast is rejected; no-response `NoRemoteEvidence` request may broadcast; responses never generic-broadcast. Exact terminal duplicate is idempotent and does not rerun the handler. Route tokens remain opaque.
+## Newly identified A2 issue to resolve
 
-M1 mapping: `Admitted` -> `Accepted`; terminal/history duplicates -> `AlreadyAccepted`; in-progress/busy -> `TemporarilyUnavailable`; ledger pressure -> `ResourceUnavailable`; unknown/protocol -> `Unsupported`; no active requester -> `Rejected`; invalid/schema/decode -> `Malformed`.
+A family binding may contain both `DestinationPrimitiveAdmission` and `NoRemoteEvidence` outbound policies. Initialization must prove destination-admission capability if any bound outbound policy requires it, but `SubmitOutbound` must not reject a valid `NoRemoteEvidence` occurrence merely because another Type in the same family requires stronger evidence. Preserve the Initialize-time proof while making per-occurrence validation policy-specific.
 
-Command test harness still has two cleanup items before formal Tranche-8 closure because direct replacement of the ~20 KB file was connector-blocked: commit the separate `broadcastProvenance` variable directly into the test source, and narrow broad `ESPressio_Serializable.hpp` to `ESPressio_SerializationMacros.hpp`, then remove the Command-only `-Wno-error=misleading-indentation` workflow workaround. Production behavior is green and must not be weakened.
+## Locked non-regression rules
 
-### State — GREEN
-
-`src/ESPressio_StateMeshAdapterBinding.hpp` plus `tests/state_mesh_adapter_binding_test.cpp` are validated at `fcec957…`, workflow `34747763059` SUCCESS.
-
-The real host contract uses `State::Runtime` with a normal pre-established remote-owner session and submits a newer owner-origin Publication through MeshAdapters. It validates:
-
-- exact Owner `DeviceRuntimeIdentity` provenance from authenticated State bytes;
-- runtime incarnation is retained from State bytes and never sourced from Mesh membership;
-- real State session/version mutation through `Runtime::AdmitRemote`;
-- exact duplicate -> `AlreadyAccepted`;
-- generic State broadcast rejection with fail-closed provenance clearing;
-- authenticated Mesh-source Device mismatch rejection;
-- frozen service-class mismatch rejection;
-- requester-origin `SubscribeRequest` selects Requester, not Owner, as semantic source;
-- forged requester Device rejected before State mutation.
-
-The host contract uses a valid finite `NoRemoteEvidence` State convergence policy so Publication mutation can be tested without adding an unrelated acknowledgement transport. State session/version/baseline/resync/convergence state remains family-owned.
-
-Locked State rules: `StateValidatedIngressContext` is full `DeviceRuntimeIdentity`; message kind selects Owner vs Requester; exact role-specific identity equality is required; `State::Runtime::AdmitRemote<TState,Format>` remains the security/session/convergence boundary; generic State broadcast is forbidden.
-
-## Exact rules — do not regress
-
-- Never collapse A2 queue acceptance into M1 `Accepted`.
-- Never convert Mesh membership incarnation into runtime incarnation.
-- Never pack/truncate DeviceIdentifier into the 64-bit A2 route token.
-- `ImmediatePeer.Token` is transport peer/route fact; `OriginalSource` is semantic provenance.
-- No family-local retry/worker/fragmentation architecture.
-- Do not weaken fail-closed provenance clearing merely to satisfy a test.
+- Adapter queue ownership is never M1 `Accepted`.
+- Never derive runtime incarnation from Mesh membership.
+- Never pack/truncate DeviceIdentifier into the 64-bit route token.
+- Keep semantic provenance distinct from immediate route/peer facts.
+- No family-local retry worker, queue or fragmentation architecture.
+- No predecessor Event node/selective/broadcast transport runtimes under new names.
+- Do not weaken fail-closed provenance or broadcast restrictions to satisfy tests.
 
 ## Immediate continuation
 
-1. Complete locally-originated/outbound Event, Command and State family composition through the neutral A2 lower-transport seam and bounded Mesh route-token composition. Preserve family-owned serialization/lease semantics and A2-owned pursuit.
-2. Remove predecessor Event-only MeshAdapter submission/transport paths only after replacement inbound/outbound coverage is green; no shims.
-3. Complete M8-23/M8-24 security, resource, fuzz, multi-node and dependency gates; audit manifests/workflows/README/comments/umbrella; produce formal Tranche-8 closure report.
-4. Complete Command test-harness cleanup before formal closure.
-5. Update this file after every material checkpoint and before any stop. Never leave unvalidated live-tip work absent from this card.
+1. Add/run Event local-dispatch -> A2 outbound validation and promote only if green.
+2. Resolve the mixed-policy A2 capability issue without weakening Initialize-time evidence proof.
+3. Implement locally-originated Command request egress.
+4. Implement locally-originated State transport egress and convergence feedback.
+5. Remove predecessor Event-only MeshAdapter submission/transport files only after replacement inbound/outbound coverage is green.
+6. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency and documentation gates, then formal Tranche-8 closure.
+7. Update this file after every material checkpoint and before any stop.
 
-## Remaining authorized structural work
-
-After Tranche 8, continue without permission pause through Tranche 9 RadioAdapters/non-Mesh transports, Tranche 10 dynamic tooling/platform consumers and Tranche 11 platform-wide eradication/final structural validation. Tranche 12 release preparation remains outside standing structural authorization.
+After Tranche 8, continue through authorized structural Tranches 9–11. Tranche 12 release preparation remains separate.
