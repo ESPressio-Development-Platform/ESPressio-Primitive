@@ -14,109 +14,148 @@ A2 owns logical Primitive-family pursuit/retry after synchronous ownership hando
 
 Only family `Accepted`/`AlreadyAccepted` establishes `DestinationPrimitiveAdmission`. Mesh membership incarnation is never a System runtime incarnation. Adapter route/peer tokens are opaque transport facts and never encode/truncate `DeviceIdentifier`. No family-local retry worker/queue/fragmentation architecture is permitted.
 
-## Tranches 2–7
+## Closed structural tranches
 
-Foundation F01–F08 and structural Tranches 2–7 remain closed.
+Foundation F01–F08 and structural Tranches 2–8 are CLOSED.
 
-## Tranche 8 — current status
+## Tranche 8 — CLOSED
 
-Tranche 8 is at the final cross-repository integration gate.
+### Mesh implementation evidence
 
-### Mesh M8-23 — GREEN
+M8-23 is green at Mesh implementation checkpoint `5f36b51f6ce570e97e4f95f975f039d61e2287cd`:
+- `Tranche 8 Mesh closure` workflow `34753038491` — SUCCESS.
+- `Mesh redesign contracts` workflow `34753038532` — SUCCESS.
+- `Mesh clock and runtime redesign` workflow `34753038454` — SUCCESS.
 
-M8-23 is fully green at Mesh implementation checkpoint `5f36b51f6ce570e97e4f95f975f039d61e2287cd`.
+Those exact runs prove dependency/version guards, exact seven-disposition M1 admission/evidence, complete relay record+byte+workspace ownership, relay-capacity compatibility, finite remaining residence, forward-once Broadcast + bounded DeferredLocal without re-fan, family Broadcast legality, source no-feedback, logical Mesh-to-Radio handoff, Mesh v1 security/replay, deterministic codec fuzz, three-node forwarding, clock ownership/failover, generic Thread worker behavior and deterministic Mesh-owned resource accounting.
+
+The three-node fixture preserves the security contract: C knows A as an Active authenticated Mesh member but Unreachable; B remains C's only direct authenticated sender/session for the forwarded frame. No fake A-C direct link/session was introduced.
+
+The worker guard strips comments before checking forbidden executable predecessor mechanisms. The Mesh accounting test no longer imports deleted Radio reassembly/logical-transfer macros; Radio-owned R3 resources remain Radio-owned.
+
+### Mesh M8-24 documentation/closure
+
+Mesh README was aligned to the current `primitives_redesign` ownership/dependency/runtime/clock/resource model at `5153c10319149e15c76164a3f37d917f3ff78cf2`.
+
+`ESPressio-Mesh/TRANCHE_8_CLOSURE.md` is formally CLOSED at Mesh commit `a832ce41c7ebd6174c7a06835ea24a871f843dcc`.
+
+`library.json` remains version `1.0.0` and family-neutral: System, Threads, Primitive, Radio, Timing and Security only.
+
+### Final MeshAdapters integration evidence
+
+Final integration checkpoint: `ESPressio-MeshAdapters/primitives_redesign` commit `ce0a745498216248279aafc70d6603e49b10a6ab`.
 
 Exact successful workflows:
-- `Tranche 8 Mesh closure` — `34753038491` SUCCESS.
-- `Mesh redesign contracts` — `34753038532` SUCCESS.
-- `Mesh clock and runtime redesign` — `34753038454` SUCCESS.
+- combined MeshAdapters redesign contracts `34753328372` — SUCCESS;
+- State outbound A2 contract `34753328259` — SUCCESS;
+- Command recovered-response A2 contract `34753328297` — SUCCESS.
 
-Those exact runs prove:
-- dependency boundary and unchanged Mesh version `1.0.0`;
-- exact seven-disposition M1 admission/evidence semantics;
-- complete relay record + byte + workspace ownership;
-- relay-capacity compatibility;
-- finite/non-increasing remaining residence;
-- forward-once Broadcast plus bounded `DeferredLocal` retry without re-fan;
-- family Broadcast legality;
-- source no-feedback / no own-family redispatch loop;
-- logical Mesh-to-Radio handoff with no physical-fragment ownership leakage;
-- Mesh v1 authentication/replay/security behavior;
-- deterministic codec fuzz coverage;
-- three-node A -> B -> C forwarding with authenticated original-source knowledge but no invented A-C direct session/link;
-- clock ownership/failover;
-- generic Thread runtime worker with predecessor mechanisms absent;
-- deterministic Mesh-owned resource accounting.
+These final runs resolved the live finalized Mesh `primitives_redesign` branch and the live Adapters branch, proving the Event/Command/State replacement contracts against the completed Mesh M8-23/M8-24 state.
 
-The three-node fixture was corrected without weakening security: C records A as an Active authenticated Mesh member but `Unreachable`, while B remains C's only direct authenticated sender/session for the forwarded frame.
+### Adapters native-runner caveat
 
-The legacy worker guard was corrected to strip comments before testing forbidden executable patterns; it still rejects `PrecisionThread`, `std::function`, `<functional>`, maintenance-period polling and catch-all exception wrappers in code.
+Adapters live tip used by final integration is `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). Native workflow `34748737223` has remained queued without job allocation. This is an infrastructure/native-runner caveat, not an integration failure: the exact Adapters tip is compiled and exercised by the successful final MeshAdapters workflows above.
 
-The Mesh memory-accounting test no longer imports deleted Radio reassembly/logical-transfer macros. Radio-owned R3 resources remain Radio-owned and separately published; Mesh accounts only Mesh-owned resources.
-
-### Mesh M8-24 — DOCUMENTATION/REPORT IMPLEMENTED; FINAL INTEGRATION PENDING
-
-Current Mesh live tip is `f496359526fcdf88fb140e67cd0e5b40cbdc691b`.
-
-After the green M8-23 implementation checkpoint:
-- README was rewritten at `5153c10319149e15c76164a3f37d917f3ff78cf2` to describe the current `primitives_redesign` ownership/dependency/runtime/clock/resource model and remove predecessor `RadioTransport`/propagation-branch wording.
-- `TRANCHE_8_CLOSURE.md` was added at `f496359…` as the formal closure-candidate report.
-- `library.json` remains `1.0.0` and depends only on System, Threads, Primitive, Radio, Timing and Security on `primitives_redesign`; Mesh core still has no Event/Command/State/Observable/Adapters dependency.
-
-The report is intentionally marked closure-candidate until the final MeshAdapters family integration rerun executes against this finalized Mesh tip.
-
-### MeshAdapters M8-21/M8-22 — IMPLEMENTED; PRIOR GREEN; FINAL RERUN ACTIVE
-
-Prior promoted MeshAdapters checkpoint is `fbef3eedb8d4396461e7d02e8073eccea982d99a` (`Retire predecessor Event-only MeshAdapter architecture`). Exact successful evidence at that checkpoint:
-- combined contracts `34750952418` SUCCESS;
-- State outbound A2 `34750952358` SUCCESS;
-- Command recovered-response A2 `34750952335` SUCCESS.
-
-This covers:
-- neutral Mesh -> A2 ingress correlation;
-- neutral A2 -> Mesh lower transport;
-- Event ingress/outbound and remote-origin no re-egress;
-- Command ingress/idempotency/no-response egress/response-bearing delivery failure/durable recovered response;
-- State ingress/outbound convergence feedback;
-- opaque route-token and authenticated semantic provenance rules;
-- removal of predecessor Event-only Mesh transport/submission architecture with no compatibility shim.
-
-Current MeshAdapters live tip is `ce0a745498216248279aafc70d6603e49b10a6ab`, which adds `TRANCHE_8_INTEGRATION.md` and deliberately triggers the final family contract workflows against the finalized live Mesh `primitives_redesign` branch. Do not promote Tranche 8 to closed until those new exact runs are SUCCESS.
-
-### A2 mixed-policy correction
-
-Adapters live tip remains `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). It preserves Initialize-time strongest-capability proof while allowing a `NoRemoteEvidence` occurrence in a family that also contains Types requiring `DestinationPrimitiveAdmission`. Per-occurrence evidence remains fail-closed.
-
-Native Adapters workflow `34748737223` has remained queued without job allocation. This is tracked as native-CI pending rather than failure; exact-tip integration has been green through MeshAdapters, and the final MeshAdapters rerun must again compile against this exact Adapters tip.
-
-## Family replacement state
+## Family replacement state after Tranche 8
 
 ### Event — GREEN; predecessor retired
 
 Canonical path is `ESPressio_EventMeshAdapterBinding.hpp` + `ESPressio_EventMeshAdapterOutboundTarget.hpp` over neutral A2/Mesh integration. Remote-origin Event occurrences do not re-egress.
 
-Removed without compatibility shims:
-- `ESPressio_EventMeshTransport.hpp`;
-- `ESPressio_EventMeshNodeSubmission.hpp`;
-- `ESPressio_EventMeshSelectiveSubmission.hpp`;
-- `ESPressio_EventMeshBroadcastSubmission.hpp`;
-- predecessor-specific tests.
+Removed without compatibility shims: predecessor Event Mesh transport/node/selective/broadcast submission surfaces and their predecessor-specific tests.
 
 ### Command — GREEN
 
-Two-stage MeshAdapter composition supports Command startup ordering: configure Type/format/policy before Command Runtime initialization, bind outbound/recovered-response transport during initialize, attach inbound Runtime afterwards, then freeze before start.
-
-Local requests are synchronously copied into A2-owned bytes. Response-bearing request delivery tokens are held only in a bounded generation-safe correlation table. Terminal A2 failure without required destination admission publishes exactly one existing `RequestDeliveryFailed` completion. Durable recovered executor responses use the same A2 encoder and preserve original execution key/executor/payload/route semantics.
+Two-stage MeshAdapter composition supports Command startup ordering. Local requests copy synchronously into A2-owned bytes. Response-bearing request delivery tokens are bounded/generation-safe; terminal A2 failure without required destination admission publishes exactly one `RequestDeliveryFailed`. Durable recovered executor responses preserve execution key/executor/payload/route semantics.
 
 Exact terminal duplicates may be transiently `TemporarilyUnavailable` while response-slot release is in progress, then converge to `AlreadyAccepted` without handler re-execution.
 
 ### State — GREEN
 
-State egress uses real `StateTransportBinding<TState,TFormat>`. MeshAdapters validates role-specific semantic source, resolves the opposite semantic role through `MeshRouteBinding`, synchronously encodes canonical State V1 into A2-owned bytes and retains no payload/route/retry/deadline state.
-
-Only the existing immutable `StateConvergenceHandle` is correlated for terminal feedback. Terminal A2 exhaustion enters bounded `ExhaustionPending`; service context reports exact exhaustion to State, which alone owns dormant `NeedsConvergence`, sessions, versions, baselines, resync and rearm.
+State egress uses real `StateTransportBinding<TState,TFormat>`. MeshAdapters validates role-specific semantic source, resolves the opposite semantic role through `MeshRouteBinding`, synchronously encodes canonical State V1 into A2-owned bytes and retains no payload/route/retry/deadline state. Terminal A2 exhaustion reports through the existing State convergence handle; State alone owns dormant `NeedsConvergence`, sessions, versions, baselines, resync and rearm.
 
 Canonical State V1 generic Broadcast remains rejected.
+
+## Tranche 9 — ACTIVE: RadioAdapters and non-Mesh transports
+
+Authoritative implementation sequence is R9-01..R9-25 from Architecture section 30.
+
+Repositories:
+- `ESPressio-RadioAdapters`
+- `ESPressio-ESP-Now`
+- `ESPressio-Sockets`
+- `ESPressio-Serial`
+- `ESPressio-WiFi`
+
+Architecture baseline recorded in Revision 102:
+- RadioAdapters `primitives_redesign` bootstrap `8b660acaa4f6c93d363364c596cf2bcbbda9c044`;
+- ESP-Now audit tip `56e4f4023c68468c49229fcff85e55a7cbc6b8e6`;
+- Sockets audit tip `8c5322aa03e1e3b6408e1ed999f00263afbe159e`;
+- Serial audit tip `3ef07be4252908458110682291fd6b1c1d181262`;
+- WiFi audit tip `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`.
+
+These are audit baselines only. Source-first branch tips MUST be refreshed before each implementation write.
+
+### Tranche-9 locked target boundary
+
+`ESPressio-RadioAdapters` is the only layer that simultaneously understands Radio and Primitive families. Its direct dependencies are exactly:
+
+```text
+Radio
+Adapters
+Primitive
+Event
+Command
+State
+```
+
+It owns the exact direct-Radio Primitive envelope:
+
+```text
+2 bytes PrimitiveFamilyId
+2 bytes PrimitiveProtocolVersion
+N bytes family representation
+```
+
+The prefix is exactly four bytes. Radio core must not learn the prefix or family semantics. Generic Adapters must not learn Radio wire/service types.
+
+RadioAdapters must explicitly map neutral A2 service class <-> `RadioServiceClass`; no numeric-equivalence shortcut is allowed.
+
+Inbound direct-Radio:
+Radio-owned logical bytes -> validate 4-byte prefix -> map trusted Radio provenance/service/evidence into neutral Adapter ingress -> A2 owns/adopts bounded bytes -> one family admission thunk -> exact M1 result. Immediate physical peer is not automatically original semantic source.
+
+Outbound direct-Radio:
+family representation including exact 4-byte prefix -> A1/A2 ownership -> Radio admission. Radio owns physical fragmentation through R3. RadioAdapters must not add family-specific queue/worker/fragmentation/retry engines.
+
+### Tranche-9 implementation order now in force
+
+Start with RadioAdapters R9-02..R9-11:
+1. exact 4-byte family/version codec + vectors;
+2. explicit neutral-service <-> Radio service mapping;
+3. fixed binding registry/configuration freeze;
+4. inbound Radio logical-message -> A2 ownership/provenance mapping;
+5. outbound family/A1 -> Radio admission handoff;
+6. exact P2/evidence mapping without conflating link ACK with destination Primitive admission;
+7. direct-Radio Event/Command/State bindings;
+8. generation-safe restart/shutdown/stale-completion handling.
+
+Then continue R9-12..R9-25 across ESP-NOW, Sockets, scoped Serial, WiFi, congestion/restart/fuzz/dependency/documentation/integration cleanup.
+
+### Tranche-9 completion gate
+
+- exact 4-byte RadioAdapters prefix fixed vectors;
+- Radio core remains free of Primitive-family dependencies; Adapters remains free of Radio dependency;
+- Event/Command/State direct-Radio all use A1/A2 + exact M1;
+- link/peer ACK never becomes destination Primitive admission;
+- ESP-NOW no longer owns second Event fragmentation/reassembly runtime;
+- ESP-NOW clock follows K1/K2 with no fixed cadence/historical mutable-System reconstruction;
+- Sockets exposes bounded neutral transport/session mechanics without parallel family execution stacks;
+- Serial tooling is not misclassified as transport; any genuine Primitive byte transport uses A2;
+- WiFi remote family bridges no longer depend on predecessor Command/Event hacks;
+- finite congestion/backpressure and generation-safe restart across transports;
+- no canonical old EventTransportManager/Event bridge/CommandRegistry transport path;
+- no extra transport-owned worker where A2/T1 owns execution;
+- locked DAG/manifests/branches, semantically classified tests, no version change.
 
 ## Locked non-regression rules
 
@@ -126,20 +165,17 @@ Canonical State V1 generic Broadcast remains rejected.
 - Never pack/truncate `DeviceIdentifier` into route tokens.
 - Keep semantic provenance distinct from immediate route/peer facts.
 - No family-local retry worker, retry queue or fragmentation architecture.
-- No predecessor Event node/selective/broadcast transport runtimes under new names.
-- Do not weaken authenticated-source, provenance, replay or Broadcast restrictions to satisfy tests.
 - Radio/R3 remains sole physical fragmentation/reassembly/arbitration owner.
 - Timing remains sole estimator/discipline/uncertainty/reliability owner.
-- Mesh core remains family-neutral and Observable-free.
-- No version change in this tranche.
+- Radio core remains Primitive-family-neutral; generic Adapters remains Radio-neutral.
+- No version change in structural Tranche 9.
 
 ## Immediate continuation
 
-1. Resolve the workflows triggered by MeshAdapters `ce0a745…` and record exact run IDs/results.
-2. If all final MeshAdapters combined/focused workflows are green against Mesh `f496359…` and Adapters `b8a1722…`, update `ESPressio-Mesh/TRANCHE_8_CLOSURE.md` from closure-candidate to CLOSED and record the exact final integration evidence.
-3. Update this live handoff immediately with the exact closed Tranche-8 tips and workflow IDs.
-4. Re-check Adapters native workflow `34748737223`; retain a clearly stated native-runner caveat if GitHub still has not allocated a job, without confusing it with integration failure.
-5. Once Tranche 8 is formally closed, continue authorized structural Tranche 9 according to the authoritative redesign handoff, source-first and without permission pause.
-6. Maintain this file after every material checkpoint and before every stop; regenerate the synchronized downloadable handoff for the user with every response.
+1. Re-query exact `primitives_redesign` heads for RadioAdapters, ESP-Now, Sockets, Serial and WiFi and reconcile any drift before writing.
+2. Audit the current Radio public logical-message ingress/admission/evidence/restart surface needed by R9-02..R9-11.
+3. Implement RadioAdapters exact four-byte prefix codec + vectors first, then explicit service mapping and frozen registry.
+4. Continue inbound/outbound A2<->Radio composition and direct Event/Command/State bindings without duplicate worker/retry/fragmentation systems.
+5. Update this file after every material checkpoint and before every stop; regenerate the synchronized downloadable handoff for the user with every response.
 
-Tranche 12 release preparation remains separate and unauthorized.
+After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 release preparation remains separate and unauthorized.
