@@ -24,8 +24,6 @@ Mesh M8-23 is green at `5f36b51f6ce570e97e4f95f975f039d61e2287cd` with workflows
 
 Final MeshAdapters integration checkpoint is `ce0a745498216248279aafc70d6603e49b10a6ab` with combined workflow `34753328372`, State workflow `34753328259`, and Command recovered-response workflow `34753328297` all SUCCESS.
 
-Adapters live tip used by final integration is `b8a17228bb3d5e87ae622dbab782a308326bf543`. Native workflow `34748737223` remained queued without job allocation; this is a native-runner caveat, not an integration failure.
-
 ## Tranche 9 — ACTIVE: RadioAdapters and non-Mesh transports
 
 Authoritative implementation sequence is R9-01..R9-25 from Architecture section 30.
@@ -58,12 +56,9 @@ Initial green foundation checkpoint:
 - RadioAdapters `3d3f1ed6a9bfdcc52fec2df385d37c71578d9bf2`
 - workflow `34753638473` — SUCCESS.
 
-Current exported-surface regression at the promoted ingress checkpoint is also green:
-- workflow `34755161844` — SUCCESS.
-
 ### R9-04 / R9-05 — IMPLEMENTED; GREEN
 
-Promoted RadioAdapters tip: `8a3d1cf9506357fe90937d6bcf1d19d4f1091da2`.
+Promoted RadioAdapters ingress checkpoint: `8a3d1cf9506357fe90937d6bcf1d19d4f1091da2`.
 
 Exact green evidence:
 - `RadioAdapters ingress contracts` workflow `34755161807` — SUCCESS;
@@ -77,28 +72,69 @@ Implemented surfaces:
 Locked inbound ownership now proven:
 Radio owns the complete trusted logical-message lease until the bridge call; RadioAdapters validates and strips only the four-byte prefix; family policy resolution sees only family bytes; transport/security provenance supplies immediate peer and optional validated semantic source independently; A2 synchronously copies accepted bytes before return and later executes exactly one family admission thunk on its own worker topology.
 
-The host contract explicitly proves that a trusted physical Radio peer produces an `ImmediatePeer` fact but does **not** automatically produce `OriginalSource` semantic provenance.
+A trusted physical Radio peer produces an `ImmediatePeer` fact but does **not** automatically produce `OriginalSource` semantic provenance. Unknown family or unsupported protocol returns `Unsupported` before family decode. Short/malformed envelope returns `Malformed`. No Radio lease, borrowed pointer, family object, retry record or worker is retained by RadioAdapters.
 
-Unknown family or unsupported protocol returns `Unsupported` before family decode. Short/malformed envelope returns `Malformed`. No Radio lease, borrowed pointer, family object, retry record or worker is retained by RadioAdapters.
+### Neutral A2 lower-transport metadata seam — IMPLEMENTED; INTEGRATION GREEN
 
-### R9-06 / R9-07 — ACTIVE NEXT
+R9-06 source-first analysis exposed that the neutral `LowerTransportSubmitThunk` did not carry enough already-owned A2 metadata for a direct Radio transport to construct the locked envelope or derive finite Radio-local timing/evidence requirements without smuggling transport facts into family payloads/routes.
 
-Radio public runtime has been revalidated at `364f083c297e2072f7972f2fd63fcfa79cb6c1dd`:
-- `RadioRuntime::SubmitDirect(...)` and `SubmitPeer(...)` are the family-opaque bounded logical-transfer admission surfaces;
-- scheduler submission copies/owns logical bytes before reporting accepted;
+Current `ESPressio-Adapters/primitives_redesign` tip is:
+- `4c22db73063041a488e497b75be903a98a89196a`.
+
+The neutral submit seam now carries, in addition to the existing record/service/bytes/route:
+- `PrimitiveFamilyId`;
+- `PrimitiveProtocolVersion`;
+- immutable `PrimitivePolicyDescriptor`.
+
+`AdapterRuntime` passes `record.Family`, `record.Protocol` and `record.Policy` directly to the bound lower transport. Generic Adapters remains Radio-neutral.
+
+`ESPressio-MeshAdapters` production lower transport accepts these additive neutral fields and intentionally ignores them because Mesh already owns its application framing and lifecycle. All stale test-only lower-transport mocks were migrated to the same neutral signature.
+
+Promoted MeshAdapters compatibility checkpoint:
+- MeshAdapters `f861d96ecddb14a9242f444174fb0248da9bab88`.
+- State outbound workflow `34756179342` — SUCCESS.
+- Command recovered-response workflow `34756179358` — SUCCESS.
+- combined `MeshAdapters redesign contracts` workflow `34756179363` — SUCCESS.
+
+This proves the neutral seam extension did not alter Tranche-8 Mesh family semantics.
+
+### R9-06 — IMPLEMENTED; GREEN
+
+Promoted RadioAdapters outbound checkpoint:
+- RadioAdapters `819a2cd5e6f3dcec589d3dd586e5cc5ba1c54525`.
+
+Exact green evidence at that tip:
+- outbound workflow `34755755309` — SUCCESS;
+- ingress workflow `34755755291` — SUCCESS;
+- redesign/exported-surface workflow `34755755273` — SUCCESS.
+
+Implemented `src/ESPressio_RadioAdapterLowerTransport.hpp`:
+- fixed opaque `AdapterRouteToken` -> generation-safe `RadioPeerHandle` resolver;
+- composition-owned transfer-policy resolver producing finite `RadioServiceProfile` plus `RadioTransferTiming` from family/protocol/P2/service facts;
+- bounded synchronous framing workspace;
+- exact four-byte family/version prefix plus immutable family representation;
+- one `RadioRuntime::SubmitPeer(...)` logical-transfer admission;
+- no RadioAdapters worker, retry queue, retained payload, route engine or fragmentation engine;
+- atomic quiesce state.
+
+At this checkpoint the lower binding deliberately advertises `ProvidesDestinationPrimitiveAdmission=false` and `ProvidesValidatedOriginalSource=false`. Radio accepted/transmitted/peer-acknowledged evidence is therefore never mislabeled as exact family M1.
+
+### R9-07 — ACTIVE NEXT
+
+Radio public runtime remains at `364f083c297e2072f7972f2fd63fcfa79cb6c1dd` and has been re-audited:
+- `RadioRuntime::SubmitDirect(...)` / `SubmitPeer(...)` are bounded logical-transfer admission surfaces;
+- scheduler admission copies/owns logical bytes before reporting success;
 - `RadioRuntimeTransferResult` qualifies terminal results by contention domain;
-- direct-link transmission completion / peer acknowledgement remain Radio facts only;
-- `RadioRuntime::Shutdown()` is terminal for that concrete instance, detaches ingress, drains domain runtimes, stops providers, invalidates peers and clears retained inbound state.
+- scheduler terminal result contains the scheduler-local 16-bit `RadioTransferId`, terminal status and direct-link evidence;
+- `RadioRuntime::Shutdown()` is terminal for that concrete instance, drains domains, invalidates peer handles and clears result sinks.
 
-R9-06 must provide one A2 lower-transport seam that resolves the opaque Adapter route into the configured direct Radio peer/provider fact, maps service/policy to a Radio service profile/timing contract, and submits the immutable A2-owned representation through Radio logical-transfer admission. No family-specific queue/retry/fragmentation engine may be introduced.
+Locked R9-07 rule: `TransmissionCompletion` and `PeerAcknowledgement` can establish only lower-transport/link evidence. They can never establish `DestinationPrimitiveAdmission`. A policy requiring destination admission must remain pending for a **separate exact generation-correlated destination M1 receipt**, or exhaust under A2 pursuit policy.
 
-R9-07 must map Radio terminal evidence conservatively. `TransmissionCompletion` and `PeerAcknowledgement` can establish only lower-transport/link evidence. They can never become `DestinationPrimitiveAdmission`. Any policy requiring destination admission must remain pending until a separate generation-correlated destination M1 receipt exists, or exhaust according to A2 pursuit policy.
-
-The current ingress sink's use of the 16-bit Radio transfer id as a local diagnostic correlation is provisional and must not be treated as the final restart-safe A2 completion identity. R9-07/R9-11 must use generation-safe correlation across Radio runtime lifetimes.
+The provisional use of a raw 16-bit Radio transfer id as ingress diagnostic correlation is not sufficient for restart-safe A2 completion identity. R9-07/R9-11 must use bounded generation-safe correlation across Radio runtime lifetimes and must reject stale terminal/receipt observations.
 
 ## Tranche-9 remaining order
 
-After R9-06/R9-07:
+After R9-07:
 - R9-08 Event direct-Radio binding;
 - R9-09 Command direct-Radio binding;
 - R9-10 State direct-Radio binding;
@@ -127,8 +163,8 @@ After R9-06/R9-07:
 
 ## Immediate continuation
 
-1. Implement R9-06 A2 outbound -> Radio logical-transfer lower-transport seam over `RadioRuntime::SubmitPeer/SubmitDirect` with explicit route resolution and service/timing mapping.
-2. Implement R9-07 bounded generation-safe Radio terminal-result correlation and conservative evidence mapping; destination M1 receipt must remain separate from link evidence.
+1. Implement R9-07 bounded generation-safe Radio terminal-result correlation and conservative evidence mapping, with exact destination M1 receipt kept separate from link evidence.
+2. Prove stale scheduler-local transfer IDs and stale runtime-lifetime observations cannot complete reused A2 records.
 3. Validate exact host contracts and promote only green workflow evidence here.
 4. Continue R9-08..R9-11 Event/Command/State direct Radio and restart lifecycle.
 5. Maintain this file after every material checkpoint and before every stop; regenerate the synchronized downloadable handoff with every user response.
