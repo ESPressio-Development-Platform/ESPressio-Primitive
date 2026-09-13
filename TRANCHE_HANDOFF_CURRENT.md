@@ -10,121 +10,136 @@ Implementation is authorized through structural Tranches 8–11 without further 
 
 ## Locked ownership
 
-A2 owns logical pursuit/retry; Mesh owns routing/forwarding/application lifecycle; Radio R3 owns physical fragmentation/arbitration. Only family `Accepted`/`AlreadyAccepted` establishes destination Primitive admission. Mesh membership incarnation is never a System runtime incarnation. Adapter route/peer tokens remain opaque transport facts and never encode/truncate DeviceIdentifier. No family-local retry worker/queue/fragmentation architecture may be introduced.
+A2 owns logical Primitive-family pursuit/retry after synchronous ownership handoff. Mesh owns authenticated membership, topology, routing/forwarding/Broadcast and Mesh application lifecycle. Radio/R3 owns physical fragmentation/reassembly/arbitration. Timing owns clock estimation/discipline/uncertainty/reliability. Mesh owns only clock root/parent/reference topology selection. Primitive family runtimes own exact M1 semantics.
 
-## Green baseline and current promoted evidence
+Only family `Accepted`/`AlreadyAccepted` establishes `DestinationPrimitiveAdmission`. Mesh membership incarnation is never a System runtime incarnation. Adapter route/peer tokens are opaque transport facts and never encode/truncate `DeviceIdentifier`. No family-local retry worker/queue/fragmentation architecture is permitted.
 
-Foundation F01–F08 and Tranches 2–7 remain closed.
+## Tranches 2–7
 
-Historical Mesh checkpoint `e21a4a7d7f527db59171477e27e12263231a7069` (workflow `34742545719` SUCCESS) is no longer the live Mesh tip. Source-first reconciliation on 2026-09-13 found `ESPressio-Mesh/primitives_redesign` advanced to live tip `6cd69a02cab7297ce96b77278d56aecc663fc516` (`Fix three-node forwarding contract fixture`). The intervening M8-23 hardening includes deterministic Mesh V1 codec fuzzing, a three-node forwarding fixture, source-broadcast no-feedback coverage, and a consolidated Tranche-8 closure workflow.
+Foundation F01–F08 and structural Tranches 2–7 remain closed.
 
-At exact Mesh tip `6cd69a02…`:
-- `Mesh redesign contracts` workflow `34751515869` is SUCCESS.
-- `Tranche 8 Mesh closure` workflow `34751515696` reaches and passes dependency guards, predecessor-worker guard, exact M1 receiver admission, relay-resource ownership, relay-capacity profile, remaining-residence lifetime, broadcast DeferredLocal, family broadcast policy, source no-feedback, logical-transfer Radio handoff, security, and deterministic codec fuzz; its first failing gate is the new three-node forward-once runtime assertion at C (`atC.Disposition == Completed`). Clock/runtime/memory closure steps are skipped only because of that preceding failure.
-- `Mesh clock and runtime redesign` workflow `34751515667` compiles/runs clock-reference ownership and the generic Thread Mesh worker successfully, then fails only because its older grep guard matches forbidden predecessor words present in comments. The consolidated closure workflow already strips comments before applying the same prohibition, so this is a workflow false positive rather than a runtime-worker regression.
+## Tranche 8 — current status
 
-Current MeshAdapters promoted tip remains `fbef3eedb8d4396461e7d02e8073eccea982d99a` (`Retire predecessor Event-only MeshAdapter architecture`). All workflows at that exact cleanup tip are SUCCESS:
-- combined MeshAdapters redesign contracts `34750952418`;
-- focused State outbound A2 contract `34750952358`;
-- focused Command recovered-response A2 contract `34750952335`.
+Tranche 8 is at the final cross-repository integration gate.
 
-The exact MeshAdapters cleanup tip therefore re-proves the neutral Mesh/A2 boundaries, Event ingress/outbound, Command ingress/idempotency/no-response egress/response-bearing delivery failure, State ingress/outbound convergence, durable Command recovered-response routing, and predecessor Event-only architecture removal.
+### Mesh M8-23 — GREEN
 
-Adapters live tip remains `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). Native workflow `34748737223` remains queued without job allocation. This is native-CI pending, not a failure; the exact Adapters tip is compiled and exercised by all current green MeshAdapters workflows.
+M8-23 is fully green at Mesh implementation checkpoint `5f36b51f6ce570e97e4f95f975f039d61e2287cd`.
 
-Do not call Tranche 8 complete until the remaining M8-23 failures are resolved, M8-24 integration/documentation is complete, and the formal closure gate is green.
+Exact successful workflows:
+- `Tranche 8 Mesh closure` — `34753038491` SUCCESS.
+- `Mesh redesign contracts` — `34753038532` SUCCESS.
+- `Mesh clock and runtime redesign` — `34753038454` SUCCESS.
 
-## Event replacement path — IMPLEMENTED; GREEN; PREDECESSOR RETIRED
+Those exact runs prove:
+- dependency boundary and unchanged Mesh version `1.0.0`;
+- exact seven-disposition M1 admission/evidence semantics;
+- complete relay record + byte + workspace ownership;
+- relay-capacity compatibility;
+- finite/non-increasing remaining residence;
+- forward-once Broadcast plus bounded `DeferredLocal` retry without re-fan;
+- family Broadcast legality;
+- source no-feedback / no own-family redispatch loop;
+- logical Mesh-to-Radio handoff with no physical-fragment ownership leakage;
+- Mesh v1 authentication/replay/security behavior;
+- deterministic codec fuzz coverage;
+- three-node A -> B -> C forwarding with authenticated original-source knowledge but no invented A-C direct session/link;
+- clock ownership/failover;
+- generic Thread runtime worker with predecessor mechanisms absent;
+- deterministic Mesh-owned resource accounting.
 
-The canonical Event path is now `ESPressio_EventMeshAdapterBinding.hpp` plus `ESPressio_EventMeshAdapterOutboundTarget.hpp` over neutral A2/Mesh integration. Event remains owner of Event semantics and remote-to-local dispatch; local outbound Event data is synchronously copied into A2 ownership and remote-origin Event occurrences do not re-egress.
+The three-node fixture was corrected without weakening security: C records A as an Active authenticated Mesh member but `Unreachable`, while B remains C's only direct authenticated sender/session for the forwarded frame.
 
-The predecessor Event-only architecture has been removed with no compatibility shim, as required by the clean 1.0.0 reset:
+The legacy worker guard was corrected to strip comments before testing forbidden executable patterns; it still rejects `PrecisionThread`, `std::function`, `<functional>`, maintenance-period polling and catch-all exception wrappers in code.
+
+The Mesh memory-accounting test no longer imports deleted Radio reassembly/logical-transfer macros. Radio-owned R3 resources remain Radio-owned and separately published; Mesh accounts only Mesh-owned resources.
+
+### Mesh M8-24 — DOCUMENTATION/REPORT IMPLEMENTED; FINAL INTEGRATION PENDING
+
+Current Mesh live tip is `f496359526fcdf88fb140e67cd0e5b40cbdc691b`.
+
+After the green M8-23 implementation checkpoint:
+- README was rewritten at `5153c10319149e15c76164a3f37d917f3ff78cf2` to describe the current `primitives_redesign` ownership/dependency/runtime/clock/resource model and remove predecessor `RadioTransport`/propagation-branch wording.
+- `TRANCHE_8_CLOSURE.md` was added at `f496359…` as the formal closure-candidate report.
+- `library.json` remains `1.0.0` and depends only on System, Threads, Primitive, Radio, Timing and Security on `primitives_redesign`; Mesh core still has no Event/Command/State/Observable/Adapters dependency.
+
+The report is intentionally marked closure-candidate until the final MeshAdapters family integration rerun executes against this finalized Mesh tip.
+
+### MeshAdapters M8-21/M8-22 — IMPLEMENTED; PRIOR GREEN; FINAL RERUN ACTIVE
+
+Prior promoted MeshAdapters checkpoint is `fbef3eedb8d4396461e7d02e8073eccea982d99a` (`Retire predecessor Event-only MeshAdapter architecture`). Exact successful evidence at that checkpoint:
+- combined contracts `34750952418` SUCCESS;
+- State outbound A2 `34750952358` SUCCESS;
+- Command recovered-response A2 `34750952335` SUCCESS.
+
+This covers:
+- neutral Mesh -> A2 ingress correlation;
+- neutral A2 -> Mesh lower transport;
+- Event ingress/outbound and remote-origin no re-egress;
+- Command ingress/idempotency/no-response egress/response-bearing delivery failure/durable recovered response;
+- State ingress/outbound convergence feedback;
+- opaque route-token and authenticated semantic provenance rules;
+- removal of predecessor Event-only Mesh transport/submission architecture with no compatibility shim.
+
+Current MeshAdapters live tip is `ce0a745498216248279aafc70d6603e49b10a6ab`, which adds `TRANCHE_8_INTEGRATION.md` and deliberately triggers the final family contract workflows against the finalized live Mesh `primitives_redesign` branch. Do not promote Tranche 8 to closed until those new exact runs are SUCCESS.
+
+### A2 mixed-policy correction
+
+Adapters live tip remains `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). It preserves Initialize-time strongest-capability proof while allowing a `NoRemoteEvidence` occurrence in a family that also contains Types requiring `DestinationPrimitiveAdmission`. Per-occurrence evidence remains fail-closed.
+
+Native Adapters workflow `34748737223` has remained queued without job allocation. This is tracked as native-CI pending rather than failure; exact-tip integration has been green through MeshAdapters, and the final MeshAdapters rerun must again compile against this exact Adapters tip.
+
+## Family replacement state
+
+### Event — GREEN; predecessor retired
+
+Canonical path is `ESPressio_EventMeshAdapterBinding.hpp` + `ESPressio_EventMeshAdapterOutboundTarget.hpp` over neutral A2/Mesh integration. Remote-origin Event occurrences do not re-egress.
+
+Removed without compatibility shims:
 - `ESPressio_EventMeshTransport.hpp`;
 - `ESPressio_EventMeshNodeSubmission.hpp`;
 - `ESPressio_EventMeshSelectiveSubmission.hpp`;
 - `ESPressio_EventMeshBroadcastSubmission.hpp`;
-- their predecessor-specific tests.
+- predecessor-specific tests.
 
-`ESPressio_MeshAdapters.hpp` exports only the neutral ingress/lower-transport/route surfaces and current Event/Command/State family bindings. README is aligned to the locked family-neutral ownership model.
+### Command — GREEN
 
-## Command replacement path — IMPLEMENTED; GREEN
+Two-stage MeshAdapter composition supports Command startup ordering: configure Type/format/policy before Command Runtime initialization, bind outbound/recovered-response transport during initialize, attach inbound Runtime afterwards, then freeze before start.
 
-Command ingress/idempotency is repository truth. Exact terminal duplicates may transiently return `TemporarilyUnavailable` while a response slot is still releasing, but converge to `AlreadyAccepted` without handler re-execution.
+Local requests are synchronously copied into A2-owned bytes. Response-bearing request delivery tokens are held only in a bounded generation-safe correlation table. Terminal A2 failure without required destination admission publishes exactly one existing `RequestDeliveryFailed` completion. Durable recovered executor responses use the same A2 encoder and preserve original execution key/executor/payload/route semantics.
 
-The two-stage `CommandMeshAdapterFamilyBinding` supports Command startup ordering: configure immutable Type/format/policy metadata before `Command::Runtime::Initialize`, bind outbound transport and recovered-response reservation during initialize, attach the initialized inbound Runtime afterwards, then freeze before start.
+Exact terminal duplicates may be transiently `TemporarilyUnavailable` while response-slot release is in progress, then converge to `AlreadyAccepted` without handler re-execution.
 
-Local request leases are synchronously copied into A2-owned bytes. Response-bearing request delivery tokens live only in a bounded generation-safe correlation table; A2 owns pursuit. Terminal A2 failure without required destination admission publishes exactly one existing Command delivery failure. Durable recovered responses reserve a bounded MeshAdapter destination during Command initialization and use the same A2 response encoder after start.
+### State — GREEN
 
-Green evidence includes:
-- no-response local Command->A2 path in combined workflow `34750952418`;
-- real `ResponseCapability` terminal failure -> exactly one `RequestDeliveryFailed` callback in combined workflow `34750952418`;
-- recovered durable response preserving original execution key, prior executor identity, payload and opaque route in focused workflow `34750952335`.
+State egress uses real `StateTransportBinding<TState,TFormat>`. MeshAdapters validates role-specific semantic source, resolves the opposite semantic role through `MeshRouteBinding`, synchronously encodes canonical State V1 into A2-owned bytes and retains no payload/route/retry/deadline state.
 
-M8-22 Command replacement coverage is complete.
+Only the existing immutable `StateConvergenceHandle` is correlated for terminal feedback. Terminal A2 exhaustion enters bounded `ExhaustionPending`; service context reports exact exhaustion to State, which alone owns dormant `NeedsConvergence`, sessions, versions, baselines, resync and rearm.
 
-## State replacement path — IMPLEMENTED; GREEN
-
-State egress uses the real `StateTransportBinding<TState,TFormat>`. MeshAdapters validates semantic source, resolves the opposite semantic role through `MeshRouteBinding`, synchronously encodes State V1 into A2-owned bytes and retains no payload/route/retry/deadline state.
-
-Only an existing immutable `StateConvergenceHandle` is correlated for terminal A2 feedback. Terminal pursuit failure becomes bounded `ExhaustionPending`; service context reports exact exhaustion to State, which alone owns dormant `NeedsConvergence`, sessions, versions, baselines, resync and rearm.
-
-Focused workflow `34750952358` and combined workflow `34750952418` are SUCCESS after predecessor cleanup.
-
-## A2 mixed-policy correction — IMPLEMENTED; INTEGRATION GREEN / NATIVE CI PENDING
-
-Adapters `b8a1722…` retains Initialize-time strongest-capability proof while allowing `NoRemoteEvidence` occurrences to coexist with Types requiring `DestinationPrimitiveAdmission`. Per-occurrence evidence checks remain fail-closed. Native workflow `34748737223` remains queued, while current MeshAdapters workflows provide integration evidence against the exact tip.
-
-## M8-23 closure audit — ACTIVE
-
-The consolidated Mesh closure workflow now maps the locked completion gate directly to executable evidence. At `6cd69a02…`, all of these are already GREEN before the first failing multi-node step:
-- dependency boundary: Mesh core has no Event/Command/State/Observable dependency leakage and remains version `1.0.0`;
-- predecessor worker mechanisms rejected after comments are stripped;
-- exact seven-disposition M1 receiver path and evidence semantics;
-- relay record + byte + workspace ownership;
-- minimum relay-capacity profile admission;
-- finite/non-increasing remaining-residence lifetime;
-- forward-once/DeferredLocal broadcast lifecycle and bounded local retry;
-- generic broadcast policy restrictions;
-- source broadcast no-feedback path;
-- Mesh-to-managed-Radio logical transfer boundary;
-- Mesh V1 security/replay/authentication contract;
-- deterministic codec fuzz contract.
-
-Current first M8-23 failure is `tests/mesh_v1_three_node_forwarding_test.cpp` at node C. The fixture currently authenticates direct sender B at C but must also satisfy the locked authenticated original-source requirement for source A before C can accept the forwarded origin. The next implementation action is to verify the exact `UnknownAuthenticatedSource` check and correct the fixture topology if that diagnosis is confirmed; do not weaken source verification.
-
-Separately, `.github/workflows/mesh-runtime-redesign.yml` still uses a raw grep over `ESPressio_MeshRuntimeWorker.hpp`, so predecessor terms in explanatory comments cause a false failure. The fix is to make this older guard comment-insensitive in the same manner as `tranche8-closure.yml`, while preserving the exact forbidden code patterns.
-
-## M8-24 status — NOT YET CLOSED
-
-M8-24 still requires the final manifests/workflows/README/source-comment/resource-accounting audit and tranche integration validation after M8-23 is fully green. The formal Tranche-8 implementation/closure report has not yet been issued.
-
-The closure audit must still end with explicit evidence for:
-- three-node forward-once plus DeferredLocal without re-fan;
-- clock topology/reference ownership and conservative failover;
-- generic Thread worker/no polling predecessor path;
-- deterministic Mesh resource accounting;
-- full tranche workflow integration after all fixes;
-- no version change.
+Canonical State V1 generic Broadcast remains rejected.
 
 ## Locked non-regression rules
 
 - Adapter queue ownership is never M1 `Accepted`.
-- Never derive runtime incarnation from Mesh membership.
-- Never pack/truncate DeviceIdentifier into a route token.
+- Only `Accepted`/`AlreadyAccepted` establishes destination Primitive admission.
+- Never derive System runtime incarnation from Mesh membership incarnation.
+- Never pack/truncate `DeviceIdentifier` into route tokens.
 - Keep semantic provenance distinct from immediate route/peer facts.
 - No family-local retry worker, retry queue or fragmentation architecture.
 - No predecessor Event node/selective/broadcast transport runtimes under new names.
-- Do not weaken authenticated-source, provenance, replay, or broadcast restrictions to satisfy tests.
-- Radio/R3 remains sole physical fragmentation/arbitration owner.
-- Timing remains sole estimator/discipline/uncertainty owner; Mesh owns only reference/topology orchestration.
+- Do not weaken authenticated-source, provenance, replay or Broadcast restrictions to satisfy tests.
+- Radio/R3 remains sole physical fragmentation/reassembly/arbitration owner.
+- Timing remains sole estimator/discipline/uncertainty/reliability owner.
+- Mesh core remains family-neutral and Observable-free.
+- No version change in this tranche.
 
 ## Immediate continuation
 
-1. Verify the three-node C failure against `MeshV1BroadcastCoordinator` authenticated-original-source validation; fix the fixture if it lacks source-A authenticated membership, without inventing an A-C direct link/session.
-2. Make the legacy `mesh-runtime-redesign.yml` predecessor-worker guard comment-insensitive while preserving its fail-closed code prohibition.
-3. Rerun exact Mesh workflows and promote only genuinely green evidence into this handoff.
-4. Complete remaining M8-24 manifest/workflow/README/source-comment/resource-accounting classification and integration validation.
-5. Re-check Adapters native workflow `34748737223`; retain native-CI-pending versus integration-green distinction if no runner is allocated.
-6. Produce the formal Tranche-8 implementation/closure report and update this living handoff before moving to Tranche 9.
+1. Resolve the workflows triggered by MeshAdapters `ce0a745…` and record exact run IDs/results.
+2. If all final MeshAdapters combined/focused workflows are green against Mesh `f496359…` and Adapters `b8a1722…`, update `ESPressio-Mesh/TRANCHE_8_CLOSURE.md` from closure-candidate to CLOSED and record the exact final integration evidence.
+3. Update this live handoff immediately with the exact closed Tranche-8 tips and workflow IDs.
+4. Re-check Adapters native workflow `34748737223`; retain a clearly stated native-runner caveat if GitHub still has not allocated a job, without confusing it with integration failure.
+5. Once Tranche 8 is formally closed, continue authorized structural Tranche 9 according to the authoritative redesign handoff, source-first and without permission pause.
+6. Maintain this file after every material checkpoint and before every stop; regenerate the synchronized downloadable handoff for the user with every response.
 
-After Tranche 8, continue authorized structural Tranches 9–11. Tranche 12 release preparation remains separate.
+Tranche 12 release preparation remains separate and unauthorized.
