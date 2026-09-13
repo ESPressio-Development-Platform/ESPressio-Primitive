@@ -1,6 +1,6 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
-Date: 2026-09-12
+Date: 2026-09-13
 
 This file is the current cross-repository continuation card. The uploaded architecture handoff remains authoritative for locked contracts, ordering and completion gates. `TRANCHE_HANDOFF.MD` remains historical context; this file is authoritative for the latest pushed tranche position.
 
@@ -59,20 +59,42 @@ Structural Clock architecture is complete, but no software test invents physical
 
 This is not a blocker for the structural tranche. It is a provider/deployment qualification boundary that later validation must keep explicit.
 
-## Current next tranche — Tranche 8 Mesh/MeshAdapters
+## Current tranche — Tranche 8 Mesh/MeshAdapters
 
 Continue immediately under standing authorization.
 
-Before the first write, freeze/reconcile the **live** source tips for at least:
+### Live in-progress checkpoint — 2026-09-13
 
-- ESPressio-Mesh `primitives_redesign`
-- ESPressio-MeshAdapters `primitives_redesign`
-- ESPressio-Adapters `primitives_redesign`
-- ESPressio-Radio `primitives_redesign`
-- ESPressio-Event / Command / State `primitives_redesign`
-- ESPressio-Security and any other direct current Mesh dependency touched by the locked M8 work package
+The live tips were reconciled before continuing:
 
-Never trust stale planning SHAs when live tips differ. Read intervening deltas and preserve legitimate concurrent work. No branch rewind or force push.
+- `ESPressio-Mesh/primitives_redesign` = `e21a4a7d7f527db59171477e27e12263231a7069` (`Restore Clock reference regression semantics`).
+- `ESPressio-MeshAdapters/primitives_redesign` = `d29065341cee134120bfe18351c50bcec9bbcdfd` (still the audited predecessor/Event-only baseline at this checkpoint).
+- `ESPressio-Adapters/primitives_redesign` = `e43076c6c158b9036da4a3424b77043bb5910975` (closed Tranche-6 substrate).
+- `ESPressio-Radio/primitives_redesign` = `364f083c297e2072f7972f2fd63fcfa79cb6c1dd` (closed Tranche-7 substrate at reconciliation time; re-query before any later Radio-dependent write).
+
+Mesh is **52 fast-forward commits ahead** of the Section-29 planning baseline `2e55bfb2359b2c80dc3cdbb5917776caca92083f`. The current delta already contains implementation/test work in the locked M8 areas including:
+
+- exact neutral Primitive admission mapping / `PrimitiveReceiverRegistry` migration;
+- Mesh-local six-class relay Q1 capacity and deterministic relay-capacity profile;
+- non-increasing remaining-residence helpers and v1 broadcast wire migration;
+- authenticated broadcast lifecycle with network Seen/Forwarded separated from local `DeferredLocal` admission/retry;
+- family-neutral broadcast-policy boundary;
+- next-hop submission through managed Radio rather than predecessor direct fragment bursts;
+- Mesh-only clock reference/topology orchestration and source-lineage/failover handling;
+- `MeshRuntimeWorker` migration away from predecessor `PrecisionThread`/`std::function` execution;
+- lifecycle observer replacement with fixed sink mechanics and resource-accounting updates.
+
+Exact-head Mesh redesign workflow run **`34742545719` — SUCCESS** at `e21a4a7d7f527db59171477e27e12263231a7069`.
+
+Do **not** yet claim Tranche 8 complete from this checkpoint. MeshAdapters has not yet been migrated on its live branch, and the full M8 completion gate (including Event/Command/State frozen A2 bindings, cross-repo integration/dependency guards, final resource/security/fuzz/multi-node validation, docs/report) remains to be closed.
+
+### Immediate continuation point
+
+1. Re-read the current Mesh core public handoff surfaces and classify any remaining M8-01..M8-20 gaps against the exact `e21a4a7d…` tree; preserve all 52 existing commits.
+2. Migrate `ESPressio-MeshAdapters/primitives_redesign` from `d2906534…` to frozen A2 Event/Command/State family bindings (M8-21/M8-22), with no source-local redispatch.
+3. Validate MeshAdapters against the closed Adapters/Event/Command/State/Mesh branch APIs and add exact family policy gates for `NoRemoteEvidence`, response-bearing Command rejection and invalid/stateless State broadcast rejection.
+4. Complete M8-23/M8-24 tranche-wide security/resource/fuzz/multi-node/dependency tests, manifests/workflows/docs and a formal implementation report.
+5. Update this living handoff after every material checkpoint and before any session/usage stop with exact branch heads and CI run IDs.
 
 The locked M8-01..M8-24 sequence remains authoritative. The decisive completion requirements include:
 
