@@ -31,11 +31,11 @@ This tip is 52 fast-forward commits beyond the Section-29 planning baseline and 
 
 Do NOT call Tranche 8 complete yet. Final Mesh umbrella/manifests, cross-repo integration and formal M8 closure remain open.
 
-### MeshAdapters live tip — Event binding checkpoint in validation
+### MeshAdapters live tip — Event M8-21 green checkpoint
 
 `ESPressio-MeshAdapters/primitives_redesign` = **`bb1c1ff1fe6f6bd60c3f79deb3183f7961198841`** (`Compare Event policy descriptors canonically`).
 
-Current workflow run **`34744901323` — IN PROGRESS** at the time this handoff was written. Do not claim this checkpoint green until that exact run completes successfully.
+Exact redesign workflow run **`34744901323` — SUCCESS**.
 
 Previously validated ingress checkpoint: `b44997b448b29105cfc5a8021eb59633c9538148` (`Fix strict ingress correlation build`), exact run `34744393741` SUCCESS.
 
@@ -54,19 +54,9 @@ The bounded `src/ESPressio_MeshAdapterIngress.hpp` establishes the asynchronous 
 
 ### Event M8-21 implementation status
 
-Event binding implementation has now landed on MeshAdapters beyond the older design-only handoff. The live branch contains `ESPressio_EventMeshAdapterBinding.hpp` plus `event_mesh_adapter_binding_test.cpp`, and the workflow now checks out Event's host dependency closure including Observable.
+The real Event family binding is now green. MeshAdapters contains `ESPressio_EventMeshAdapterBinding.hpp` and its host contract test. It uses fixed pre-freeze per-Type entries, real `Event::Runtime` inbound bindings/admission, Event receipt/idempotency/source-loop semantics, and authenticated Mesh relay-service validation before A2 ownership. The A2 family binding advertises only configured service classes and the exact Event protocol range; there is no RTTI, heap registry, `std::function`, dynamic policy registry or per-occurrence policy object.
 
-The first dependency-closure run at `e602f54af928623cdf799a5b6a98d4a6d36441a2`, run `34744758201`, FAILED only while compiling the Event binding test because the test attempted `operator==` on `PrimitivePolicyDescriptor`, which intentionally has no equality operator. The bounded Mesh-to-A2 ingress regression in the same run passed. The failure was therefore a test-expression issue, not an Event binding compile/dependency failure.
-
-`bb1c1ff1fe6f6bd60c3f79deb3183f7961198841` fixes that test by comparing `PrimitivePolicyDescriptor::CanonicalBytes()`, preserving the Primitive contract rather than adding a convenience equality API. Exact run `34744901323` is currently validating it.
-
-The Event family binding being validated preserves the intended architecture:
-- fixed pre-freeze per-Type binding entries;
-- real `Event::Runtime` inbound binding/admission rather than direct descriptor dispatch;
-- exact Event receipt/idempotency/source-loop semantics;
-- authenticated Mesh relay service supplied to policy resolution and checked against the frozen per-Type service before A2 ownership;
-- A2 family binding advertises only configured service classes and exact Event protocol range;
-- no RTTI, heap registry, `std::function`, dynamic policy registry or per-occurrence policy object.
+The dependency-closure run at `e602f54af928623cdf799a5b6a98d4a6d36441a2`, run `34744758201`, failed only because the regression attempted `operator==` on `PrimitivePolicyDescriptor`, which intentionally has no equality operator. `bb1c1ff1fe6f6bd60c3f79deb3183f7961198841` compares `CanonicalBytes()` instead, preserving the Primitive API; run `34744901323` is SUCCESS.
 
 ### Exact integration rule — do not regress
 
@@ -74,12 +64,11 @@ Mesh `IPrimitiveReceiver::Receive` is synchronous; A2 executes real family admis
 
 ### Immediate continuation steps
 
-1. Inspect exact run `34744901323` for MeshAdapters head `bb1c1ff1fe6f6bd60c3f79deb3183f7961198841`. If it fails, fix the exact diagnostic without weakening Event/Mesh/A2 contracts; if it succeeds, record the green Event M8-21 checkpoint here.
-2. Add one neutral A2 `LowerTransportBinding` for Mesh outbound submission. It must use existing Mesh lifecycle/managed-Radio machinery and must not create another worker, retry engine or fragmentation engine.
-3. Add Command and State frozen bindings (M8-22), preserving exact request/response/convergence semantics. Generic Mesh broadcast remains NoRemoteEvidence-only; response-bearing Command broadcast and State broadcast must be rejected according to the locked policy boundary.
-4. Remove predecessor Event-only MeshAdapter transport/submission files only after replacement coverage is green; no shims.
-5. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency gates, manifests/workflows/README/source comments, canonical Mesh umbrella audit and formal Tranche-8 report.
-6. Update this file after every material checkpoint and before any session/usage stop with exact SHAs and CI run IDs.
+1. Add one neutral A2 `LowerTransportBinding` for Mesh outbound submission. It must use existing Mesh lifecycle/managed-Radio machinery and must not create another worker, retry engine or fragmentation engine.
+2. Add Command and State frozen bindings (M8-22), preserving exact request/response/convergence semantics. Generic Mesh broadcast remains NoRemoteEvidence-only; response-bearing Command broadcast and State broadcast must be rejected according to the locked policy boundary.
+3. Remove predecessor Event-only MeshAdapter transport/submission files only after replacement coverage is green; no shims.
+4. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency gates, manifests/workflows/README/source comments, canonical Mesh umbrella audit and formal Tranche-8 report.
+5. Update this file after every material checkpoint and before any session/usage stop with exact SHAs and CI run IDs.
 
 ## Remaining authorized structural work
 
