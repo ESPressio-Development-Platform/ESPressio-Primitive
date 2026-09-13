@@ -119,18 +119,38 @@ Implemented `src/ESPressio_RadioAdapterLowerTransport.hpp`:
 
 At this checkpoint the lower binding deliberately advertises `ProvidesDestinationPrimitiveAdmission=false` and `ProvidesValidatedOriginalSource=false`. Radio accepted/transmitted/peer-acknowledged evidence is therefore never mislabeled as exact family M1.
 
-### R9-07 — ACTIVE NEXT
+### R9-07 Radio correlation substrate — IMPLEMENTED; GREEN
 
-Radio public runtime remains at `364f083c297e2072f7972f2fd63fcfa79cb6c1dd` and has been re-audited:
-- `RadioRuntime::SubmitDirect(...)` / `SubmitPeer(...)` are bounded logical-transfer admission surfaces;
-- scheduler admission copies/owns logical bytes before reporting success;
-- `RadioRuntimeTransferResult` qualifies terminal results by contention domain;
-- scheduler terminal result contains the scheduler-local 16-bit `RadioTransferId`, terminal status and direct-link evidence;
-- `RadioRuntime::Shutdown()` is terminal for that concrete instance, drains domains, invalidates peer handles and clears result sinks.
+Promoted Radio checkpoint:
+- Radio `84c6bbcac36d959378dcc69366bc18921298c257`.
 
-Locked R9-07 rule: `TransmissionCompletion` and `PeerAcknowledgement` can establish only lower-transport/link evidence. They can never establish `DestinationPrimitiveAdmission`. A policy requiring destination admission must remain pending for a **separate exact generation-correlated destination M1 receipt**, or exhaust under A2 pursuit policy.
+Exact green evidence at that tip:
+- full `Radio redesign contracts` workflow `34764194951` — SUCCESS;
+- dedicated `R9 Radio transfer-id lease contract` workflow `34764194938` — SUCCESS.
 
-The provisional use of a raw 16-bit Radio transfer id as ingress diagnostic correlation is not sufficient for restart-safe A2 completion identity. R9-07/R9-11 must use bounded generation-safe correlation across Radio runtime lifetimes and must reject stale terminal/receipt observations.
+Radio remains Primitive-family-neutral. The added substrate is a family-neutral bounded transfer-identifier lease/correlation seam only:
+- optional `RadioTransferIdLeaseTarget` with fixed `IsReserved`, `ReserveIssued` and `ReleaseIssued` thunks;
+- scheduler transfer-ID issuance excludes both Radio-active IDs and externally leased IDs;
+- ordinary logical `Submit(...)` accepts an optional opaque 64-bit correlation token;
+- for a non-zero correlation, the scheduler reserves the issued `{contention-domain, transfer-id}` under its mutation lock before queue publication;
+- failed queue publication releases the external reservation;
+- Radio does not interpret the correlation or external lease as Primitive admission and does not release an accepted external lease when its own lower-transport terminal result occurs;
+- zero-correlation callers preserve the established scheduler/runtime behavior;
+- `RadioRuntime` preserves generic scheduler compatibility by using a lease-aware submit when available and permitting the established six-argument submit only for correlation zero; non-zero correlation against a legacy scheduler fails closed.
+
+The dedicated host contract proves pre-initialize binding/freeze semantics, external ID exclusion, exact domain/correlation/issued-ID reservation, zero-correlation non-reservation, and reservation rollback under bounded queue saturation.
+
+Locked R9-07 evidence rule remains unchanged: `TransmissionCompletion` and `PeerAcknowledgement` establish only lower-transport/link evidence. They can never establish `DestinationPrimitiveAdmission`.
+
+### R9-07 RadioAdapters exact M1 receipt — ACTIVE NEXT
+
+The exact destination receipt remains a separate RadioAdapters control logical message. Ordinary direct-Radio Primitive bytes remain exactly the locked four-byte family/version prefix followed by family representation.
+
+Selected control namespace is the invalid/unassigned Primitive family pair `{Family=0, Protocol=1}`; it is RadioAdapters-owned control framing and is never dispatched as a Primitive family. It must carry the sender's original data-transfer identity and an exact one-of-seven M1 disposition. The receipt's own Radio transfer is NoRemoteEvidence/lower-transport evidence only and must never recursively require another M1 receipt.
+
+Within one Radio runtime lifetime, the new Radio ID lease substrate prevents a transfer ID backing an outstanding exact-M1 campaign from being reused. Restart/runtime-incarnation stale-packet hardening remains R9-11 and must not be claimed closed by R9-07.
+
+RadioAdapters must now add a fixed bounded generation-safe attempt table and result/receipt correlation without adding a retry worker, family-local queue, fragmentation path or duplicate Radio runtime. Radio terminal success is only lower evidence; evidence-requiring attempts remain pending until exact destination M1 receipt or A2 policy exhaustion/failure.
 
 ## Tranche-9 remaining order
 
@@ -163,10 +183,10 @@ After R9-07:
 
 ## Immediate continuation
 
-1. Implement R9-07 bounded generation-safe Radio terminal-result correlation and conservative evidence mapping, with exact destination M1 receipt kept separate from link evidence.
-2. Prove stale scheduler-local transfer IDs and stale runtime-lifetime observations cannot complete reused A2 records.
-3. Validate exact host contracts and promote only green workflow evidence here.
-4. Continue R9-08..R9-11 Event/Command/State direct Radio and restart lifecycle.
+1. Rebase `ESPressio-RadioAdapters/primitives_redesign` against its live branch tip and implement the fixed bounded generation-safe exact-M1 attempt/receipt path using Radio `84c6bbcac36d959378dcc69366bc18921298c257`.
+2. Keep lower transport terminal/link evidence separate from exact destination Primitive admission; never infer M1 from peer acknowledgement.
+3. Add host contracts for terminal failure, delayed exact M1, duplicate/late receipt rejection, NoRemoteEvidence operation, receipt non-recursion and bounded saturation.
+4. Promote only green RadioAdapters evidence here, then continue R9-08..R9-11 Event/Command/State direct Radio and restart lifecycle.
 5. Maintain this file after every material checkpoint and before every stop; regenerate the synchronized downloadable handoff with every user response.
 
 After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 release preparation remains separate and unauthorized.
