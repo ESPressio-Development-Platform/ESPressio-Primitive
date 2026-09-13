@@ -18,30 +18,42 @@ A2 owns logical pursuit/retry; Mesh owns routing/forwarding/application lifecycl
 
 ## Live branch truth — UNDER VALIDATION
 
-- MeshAdapters `primitives_redesign`: `0f010e967c8db30f3f8975ae5d824b206a815137` (`Stabilize Command duplicate contract fixture`). Combined workflow `34748653783` is queued at this update.
-- Adapters `primitives_redesign`: `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). This tip is under validation.
+- MeshAdapters `primitives_redesign`: `1d2a2d417020efc97e18759f808bbf2e42f699f6` (`Wire Command outbound contract into CI`). This includes Event outbound plus the new Command local-egress implementation and host contract. It is not yet promoted.
+- Adapters `primitives_redesign`: `b8a17228bb3d5e87ae622dbab782a308326bf543` (`Allow mixed outbound evidence policies per family`). Workflow `34748737223` remains queued at this update.
+- MeshAdapters workflow `34748653783` for predecessor tip `0f010e9…` ended `startup_failure` with zero jobs. No build or test step ran, so this is infrastructure-only evidence and not a code/test failure.
 
 Do not call Tranche 8 complete.
 
 ## Event outbound — IMPLEMENTED; dedicated steps GREEN
 
-`ESPressio_EventMeshAdapterBinding.hpp` now has a real A2 outbound encoder for every frozen Event Type/format entry. Encoding is synchronous from a borrowed `EventLease` into Adapter-owned bytes; neither A2 nor MeshAdapters retains the Event object or lease.
+`ESPressio_EventMeshAdapterBinding.hpp` has a real A2 outbound encoder for every frozen Event Type/format entry. Encoding is synchronous from a borrowed `EventLease` into Adapter-owned bytes; neither A2 nor MeshAdapters retains the Event object or lease.
 
-`ESPressio_EventMeshAdapterOutboundTarget.hpp` provides a normal Event `ExternalAdapter` target which submits through `AdapterRuntime::SubmitOutbound` using the frozen Event service/policy and one composition-owned opaque `AdapterRouteToken`. Route selection is binding topology, not occurrence-local state. Generic broadcast rejects policies requiring destination Primitive admission. `EventTypeRuntime` itself suppresses `ExternalAdapter` delivery for remote-origin Event occurrences, so the replacement does not recreate source-local/remote redispatch.
+`ESPressio_EventMeshAdapterOutboundTarget.hpp` provides a normal Event `ExternalAdapter` target which submits through `AdapterRuntime::SubmitOutbound` using the frozen Event service/policy and one composition-owned opaque `AdapterRouteToken`. Route selection is binding topology, not occurrence-local state. Generic broadcast rejects policies requiring destination Primitive admission. `EventTypeRuntime` suppresses `ExternalAdapter` delivery for remote-origin Event occurrences, so the replacement does not recreate source-local/remote redispatch.
 
-`tests/event_mesh_adapter_outbound_test.cpp` uses the real A2 runtime. Workflow `34748517373` proved both new Event outbound compile/runtime steps GREEN: local Event dispatch reached A2/lower transport as correctly encoded Event V1 bytes with local runtime identity, conceptual message identity, service and opaque route preserved; remote-origin Event admission did not re-egress through the external target. That workflow failed later in the existing Command duplicate test, so the combined branch still awaits a fully green rerun.
+`tests/event_mesh_adapter_outbound_test.cpp` uses the real A2 runtime. Workflow `34748517373` proved both new Event outbound compile/runtime steps GREEN: local Event dispatch reached A2/lower transport as correctly encoded Event V1 bytes with local runtime identity, conceptual message identity, service and opaque route preserved; remote-origin Event admission did not re-egress through the external target. That workflow failed later in the existing Command duplicate fixture; its replacement combined rerun never reached a runner (`startup_failure`, zero jobs).
 
-## Command combined-test correction — UNDER VALIDATION
+## Command combined-test correction
 
 The Command failure in `34748517373` was a test timing assumption, not a production regression. Command commits its terminal durable ledger before the first response slot necessarily finishes routing/release. An exact terminal duplicate arriving during that bounded slot-retention interval may correctly return `TemporarilyUnavailable`; once the slot releases, the same duplicate must converge to `AlreadyAccepted` and may replay the response without rerunning the handler.
 
-MeshAdapters workflow at `0f010e9…` now patches the fixture to assert that transient->idempotent transition. It also narrows the Serializable include and removes the temporary `-Wno-error=misleading-indentation` compile suppression. These fixture changes still need to be committed directly into `tests/command_mesh_adapter_binding_test.cpp`, after which the workflow-side patch step must be removed.
+Workflow tip `0f010e9…` updates the CI fixture to assert that transient->idempotent transition, narrows the Serializable include and removes the temporary `-Wno-error=misleading-indentation` suppression. Those fixture edits still need to be persisted directly into `tests/command_mesh_adapter_binding_test.cpp`, after which the workflow-side mutation step must be deleted.
 
-Locally-originated Command request egress through `CommandOutboundBinding` remains open.
+## Command local egress — IMPLEMENTED; UNDER VALIDATION
+
+MeshAdapters now contains a two-stage `CommandMeshAdapterFamilyBinding` configuration required by Command lifecycle ordering:
+
+1. `ConfigureType<TCommand,TFormat>()` freezes Type/format/policy/wire encoder metadata before `Command::Runtime::Initialize`.
+2. The same family object initializes `CommandOutboundBinding`, allowing Command to validate the outbound contract and reserve durable recovered-response destinations during startup.
+3. After Command initialization, `AttachRuntime<TCommand,TFormat>()` attaches the real inbound runtime binding.
+4. `Freeze()` publishes the A2 family descriptor before either runtime starts.
+
+The binding synchronously encodes locally-originated request leases into A2-owned bytes, resolves destinations only through `MeshRouteBinding`, and never retains a Command request object after `SubmitOutbound` returns. Response-bearing request delivery-failure tokens are retained only in a bounded fixed campaign table keyed by opaque A2 correlation; A2 remains the sole retry/pursuit owner. Terminal feedback publishes Command delivery failure only when the required P2 evidence was not established. Executor responses and durable recovered responses continue through the same A2 outbound encoder; response correlations are disjoint from request-campaign correlations.
+
+`tests/command_mesh_adapter_outbound_test.cpp` exercises the real Command runtime -> MeshAdapter -> real A2 runtime -> lower transport path for a locally-originated no-response Command. It verifies route/service, Command Type/CommandId/local runtime identity, and serialized payload. MeshAdapters `1d2a2d4…` wires this contract into CI. Required next evidence is its compile/runtime result, followed by a response-bearing request failure-correlation/recovered-response contract.
 
 ## A2 mixed-policy correction — IMPLEMENTED; UNDER VALIDATION
 
-Adapters live tip `b8a1722…` fixes a family-neutral bug in `AdapterRuntime::SubmitOutbound`.
+Adapters `b8a1722…` fixes a family-neutral bug in `AdapterRuntime::SubmitOutbound`.
 
 A frozen family binding may contain both Types whose P2 policy requires `DestinationPrimitiveAdmission` and Types using `NoRemoteEvidence`. The binding-level `RequiresDestinationAdmissionEvidence` flag means the configured lower transport must be capable of producing the strongest evidence needed by any bound occurrence; it must not mean every occurrence in the family requires that evidence.
 
@@ -65,10 +77,10 @@ Inbound State remains green. Locally-originated `StateTransportBinding` -> A2 en
 
 ## Immediate continuation
 
-1. Validate Adapters `b8a1722…`; if green, promote exact run/commit here.
-2. Inspect MeshAdapters workflow `34748653783`; if green, promote `0f010e9…` and Event outbound combined state here. If not, fix only the exact failing contract.
-3. Persist Command fixture cleanup directly into source and remove the workflow mutation step.
-4. Implement locally-originated Command request egress through `CommandOutboundBinding`.
+1. Inspect the CI run for MeshAdapters `1d2a2d4…`; fix only exact compile/runtime defects and promote Event/Command outbound evidence when green.
+2. Inspect Adapters workflow `34748737223`; promote `b8a1722…` if green or fix only the exact failing contract.
+3. Add response-bearing Command local-egress coverage for bounded request-delivery failure correlation and durable recovered-response routing.
+4. Persist Command fixture cleanup directly into source and remove the workflow mutation step.
 5. Implement locally-originated State transport egress and convergence feedback.
 6. Remove predecessor Event-only MeshAdapter submission/transport files only after replacement inbound/outbound coverage is green.
 7. Complete M8-23/M8-24 security/resource/fuzz/multi-node/dependency/documentation gates, then formal Tranche-8 closure.
