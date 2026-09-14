@@ -1,7 +1,8 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-14
-Continuation state: structural Tranche 9 CLOSED; Tranche 10 ACTIVE at D10-01
+Continuation state: structural Tranche 9 CLOSED; Tranche 10 ACTIVE at D10-02
+Latest user time reference: 09:50 Europe/Prague
 
 This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_9_CLOSURE.md` is the formal Tranche-9 closure evidence. Live source branch tips remain implementation truth and MUST be rebaselined before every implementation step.
 
@@ -41,6 +42,8 @@ Do not infer current implementation state from old tranche checkpoint hashes alo
 - Temporary backpressure/disconnection/restart must not create unbounded retry.
 - Dynamic/common consumers in Tranche 10 consume final descriptors/factories/diagnostics; they do not become new semantic owners.
 - Generic State access from dynamic tooling is read/inspect/observe only unless an explicit typed State owner API authorizes mutation.
+- TypeDirectory/schema availability is discovery metadata, never authorization.
+- All dynamic input is bounded before parse/construction; parse/schema/factory failure is explicit and does not fall back to unbounded heap, reinterpretation or exception-driven retries.
 - No structural-tranche version changes.
 
 ## Closed foundation / structural work
@@ -77,8 +80,8 @@ Tranche 10 consumes the final closed Primitive/family/provider surfaces in commo
 
 ### Locked work order
 
-1. **D10-01** — expose/consume final Primitive `TypeDirectory` discovery surface in dynamic tools.
-2. **D10-02** — consume P3 schema/constructibility metadata for family types.
+1. **D10-01** — expose/consume final Primitive `TypeDirectory` discovery surface in dynamic tools. **CLOSED/GREEN.**
+2. **D10-02** — consume P3 schema/constructibility metadata for family types. **ACTIVE.**
 3. **D10-03** — replace Web raw CommandEnvelope → `InboundCommandEvent` ingress with typed Command construction.
 4. **D10-04** — migrate Web Event discovery/subscription to final Event descriptors/APIs.
 5. **D10-05** — migrate Web generic State inspection to final read-only descriptor/observation surface.
@@ -98,6 +101,28 @@ Tranche 10 consumes the final closed Primitive/family/provider surfaces in commo
 19. **D10-19** — update tests/examples/manifests/workflows/dependency guards and dynamic-input security tests.
 20. **D10-20** — update docs/schema examples and complete cross-tool integration validation.
 
+### D10-01 — CLOSED/GREEN
+
+Session reference: user time 09:50 Europe/Prague.
+
+Exact re-baseline corrected a mistaken SHA from prior assistant prose: immediately before D10-01 writes, `ESPressio-Primitive/primitives_redesign` was and remains based on exact pushed commit `a017017a4d38a7b0067c7b17de4770de112087a7` (`Promote Tranche 9 closure and begin D10-01`). The previously quoted `c53b4b0...` was not a repository tip and MUST NOT be used by a successor. `ESPressio-Web/primitives_redesign` began D10-01 at `814ab4c22eb3429b4bcd924b609e9db8be4ca46f`.
+
+Provider conclusion: Primitive already contained the final locked P1 surface. `TypeDirectory<Capacity>` is caller/platform-composition owned and fixed-capacity; successful `Initialize()` freezes deterministic `{Family, TypeId}` order; `TypeDirectoryView` is immutable/read-only, allocation-free, and supports exact key plus family-qualified case-sensitive name lookup. No Primitive provider expansion was required.
+
+Web implementation:
+
+- `dcb03ff4e85d10a59bd2a3286db1f5d6fe89d396` — added opt-in `src/ESPressio_WebPrimitiveDiscovery.hpp`. `PrimitiveTypeDiscovery` binds only a frozen caller-owned `TypeDirectoryView`, exposes count/deterministic index/key/name lookup, and never interprets `FamilyExtension`, schema, construction, admission, authorization or family behavior.
+- `cf58241f167c70c10bbee4d18ff3b91f49a07e76` — added focused discovery contracts covering unavailable-view rejection, deterministic enumeration, exact key lookup, family-qualified/case-sensitive names, and common-descriptor-only behavior.
+- `c493820208e1948cbca75daa13b6acb04924172b` — wired the focused target into the Web host CMake graph with Primitive include scope limited to that opt-in test.
+- `4572ce1aaf324e08d974c727639ff493cd3ef86c` — enabled the existing host workflow on `primitives_redesign` and added Primitive checkout.
+- Exact host run `34819919168` reached a real runner and failed at Configure because the pre-existing Web test graph still referenced removed `ESPressio_ThreadTerminationDispatcher.cpp`. This is a Tranche-10 stale-consumer finding, not infrastructure failure and not a D10-01 adapter defect.
+- `68a0445bed4234da34779882dd663e921ac2096c` — removed the obsolete ThreadTerminationDispatcher source reference from the two Web host targets. Follow-up run `34819994786` configured successfully and then failed during aggregate Build, proving additional later-D10 predecessor integration remains in the full Web suite.
+- `a66e6a694bbba027cdbcc2944e0480a0bb38ffa1` — made the D10-01 test's standard integer dependency explicit.
+- `9ce2297fb4a988d469eec2c219d2484546a0dc35` — added the dedicated `Primitive Discovery Contract` workflow so D10-01 can be validated independently without suppressing the aggregate Web suite's legitimate later-D10 failures.
+- Exact-tip focused run `34820218599` SUCCESS: checkout, `-std=c++17 -Wall -Wextra -Wpedantic -Werror` compile and runtime contract all passed.
+
+D10-01 semantic classification: the aggregate Web host suite remains intentionally visible as a migration detector. Do not make it green by restoring removed APIs or compatibility files. Its remaining family/WebSocket failures belong to the ordered D10-03..D10-07 migration; D10-01 is closed because its own final provider/consumer contract is independently exact-tip green.
+
 ### Tranche-10 completion gate
 
 Before Tranche 10 can close, prove at minimum:
@@ -116,12 +141,16 @@ Before Tranche 10 can close, prove at minimum:
 - Existing tests/examples are semantically classified before migration/execution.
 - No version number changes.
 
-## Immediate continuation — D10-01
+## Immediate continuation — D10-02
 
-Rebaseline the exact live tips and manifests for Primitive, Serializable/P3, Web, Command, Event, State and any dynamic-tool consumer reached by discovery. Inspect the final Primitive `TypeDirectory`/descriptor surface first and determine whether D10-01 requires provider exposure work or is purely consumer migration. Prefer consuming the existing final provider surface; only add provider API if live source proves the locked discovery contract is genuinely absent.
+Rebaseline `Serializable`, Event, Command and State family descriptors at exact live tips and determine which final P3 schema/constructibility facts already exist versus which family-owned erased construction/read adapters are genuinely absent.
 
-Then inspect Web's current dynamic discovery paths before changing them. Do not jump directly to D10-03 command ingress before D10-01/D10-02 discovery/schema prerequisites are closed.
+Current first re-baseline facts:
 
-Lua remains `main` sourced only if no newly-authorized `primitives_redesign` branch exists at the moment of work; re-query before touching it. Its dependency refs must be migrated according to the locked branch/dependency rules when its D10 items are reached.
+- `ESPressio-Serializable/primitives_redesign` is `2a0dff001cae91365d90f20a382036bd878f53e4`. `StaticSchemaDescriptor` already exposes bounded immutable version/property/value-shape metadata plus maximum DirectBinary/CBOR/JSON sizes; `SchemaDescriptor<T>()` is static and bounded.
+- `ESPressio-Command/primitives_redesign` is `b403ca1bb20162c2c88af1ba3506aeb4958ec7e8`. `CommandTypeDescriptor` already carries `RequestSchema`, optional `ResponseSchema`, family policies, exact wire bounds and runtime/admission thunks, and `GetCommandTypeDescriptor(common)` validates family + TypeId before interpreting the opaque Primitive family extension.
+- The removed historical `CommandFactory` MUST NOT return as a registry facade. D10-02/D10-03 may add only final family-owned descriptor/factory capability required for bounded typed construction/admission.
+
+Next safe action: inspect Event and State descriptor extensions and the typed local family admission APIs; then define the smallest family-owned P3/constructibility surface needed by Web/Lua/Serial without putting behavior into Primitive or creating a mutable dynamic semantic registry. Do not begin D10-03 raw Web Command replacement until this prerequisite surface is validated.
 
 After each substantive D10 milestone, update this living handoff and mirror it as a downloadable conversation artifact.
