@@ -114,15 +114,33 @@ GitHub Actions is currently failing before runner allocation, not during source 
 
 Therefore R9-12..R9-16 are **source-complete with durable tests present, but not claimed hosted-CI-green**. Do not misclassify these infrastructure failures as compiler/test failures or successes.
 
-## Active continuation — R9-17 Sockets neutral A2 transport/session binding
+## R9-17 Sockets neutral A2 transport/session binding — CLOSED; GREEN
+
+Exact promoted Sockets checkpoint:
+- `ESPressio-Sockets/primitives_redesign` `675fd906ddf0d1aa8a079287031983cfa275541e` (`Strengthen socket adapter restart contracts`).
+- Dedicated neutral-transport workflow `34809102690` SUCCESS at that exact SHA.
+
+`SocketAdapterTransport` is a fixed-capacity, family-neutral A2 lower transport. It owns only socket/session concerns: a bounded socket envelope, stream/datagram ingress framing, immutable route/session topology, nonblocking writer admission, finite stream assembly, per-session availability/generation, transport lifecycle generation, exact M1 receipt carriage and bounded correlation tables. It does not parse Event/Command/State representations and has no Radio/Mesh or dynamic `std::function`/`std::vector` dependency.
+
+The exact-tip contract proves:
+- no-evidence transport acceptance remains distinct from destination Primitive admission;
+- destination-admission evidence uses bounded exact-M1 receipt correlation;
+- pending correlation capacity is finite;
+- session loss resolves owned pending work without inventing destination admission;
+- stale receipts are rejected after session-generation change and transport restart;
+- quiesced transports reject new outbound work and ingress;
+- stale inbound A2 completion captured before restart cannot emit a receipt into the replacement lifecycle;
+- bounded stream framing consumes partial input without unbounded buffering.
+
+## Active continuation — R9-18 Sockets family-stack / Event-bridge removal
 
 Mandatory next sequence:
-1. Rebaseline `ESPressio-Sockets/primitives_redesign` live tip against planned baseline `8c5322aa03e1e3b6408e1ed999f00263afbe159e`.
-2. Audit concrete stream/datagram/WebSocket connection/session ownership, ingress buffering, backpressure, reconnect and generation behavior.
-3. Expose a bounded family-neutral byte/session lower-transport binding to A2; do not put Event/Command/State semantics into that binding.
-4. Preserve transport-specific stream/datagram framing, endpoint addressing, connection/session lifecycle, reconnect/backpressure and TLS/security-session mechanics.
-5. Then execute R9-18 removal/reduction of parallel Event/Command/State stacks and Event bridges.
-6. R9-19 migrates socket/network clock evidence to the same K1/K2 quality/source model.
+1. Rebaseline Sockets from promoted R9-17 tip `675fd906ddf0d1aa8a079287031983cfa275541e` before mutation.
+2. Audit and remove/reduce duplicate socket-owned Event family framing/transports and Event bridge surfaces now superseded by A2 family bindings.
+3. Audit and remove/reduce bespoke socket Command protocol/session/server semantics now owned by final Command runtime + A2.
+4. Audit and remove/reduce bespoke socket State frame/session/client/server semantics now owned by final State runtime + A2.
+5. Retain genuine socket/session/TLS mechanics: stream/datagram framing, endpoint addressing, connection/session lifecycle, reconnect/backpressure, TLS/security-session integration and bounded byte ingress/egress.
+6. R9-19 migrates socket/network clock evidence to the Timing K1/K2 quality/source model; do not prematurely delete legitimate network-time evidence mechanics during R9-18.
 7. Continue R9-20 Serial, R9-21/22 WiFi, R9-23 hardening, R9-24 manifests/workflows/accounting and R9-25 documentation/integration closure without permission pauses.
 
 After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 remains separate and unauthorized.
