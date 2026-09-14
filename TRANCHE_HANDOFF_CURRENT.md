@@ -1,12 +1,15 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-14
+Last synchronized continuation reference: user timestamp 08:28 Europe/Prague
 
 This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture and governance. Live `primitives_redesign` branch tips are implementation truth and MUST be rebaselined before every new implementation step.
 
 ## Authorization boundary
 
 Implementation remains authorized through structural Tranches 8–11 without further permission pauses. Version changes, release/CHANGELOG finalization, `main` reintegration, tags/releases, Wiki publication, force pushes and backward-compatibility shims remain outside authorization. Tranche 12 release preparation remains separate.
+
+The user additionally requires this living handoff to remain present on `ESPressio-Primitive/primitives_redesign` and to be mirrored as an up-to-date downloadable conversation artifact whenever progress is reported.
 
 ## Locked non-regression rules
 
@@ -96,13 +99,13 @@ WiFi baseline `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`. `WiFiEventBridge` is l
 
 ### R9-23 cross-transport hardening — CLOSED; GREEN
 
-Sockets hardening exact tip: `4ebc172bd3d797a16b169e2c9f46bdccb4909d04`.
+Sockets hardening checkpoint `4ebc172bd3d797a16b169e2c9f46bdccb4909d04`:
 - Host Tests `34811393426` SUCCESS.
 - Socket Adapter neutral transport contracts `34811393280` SUCCESS.
 - Security Integration `34811393283` SUCCESS.
-- New deterministic adversarial coverage mutates every bit of a live M1 receipt header, rejects all non-domain M1 bytes, verifies all exact non-success dispositions remain non-establishing, churns session generations repeatedly, proves stale receipt rejection, and exercises bounded stream recovery under deterministic pseudo-random chunking.
+- Deterministic adversarial coverage mutates every bit of a live M1 receipt header, rejects all non-domain M1 bytes, verifies all exact non-success dispositions remain non-establishing, churns session generations repeatedly, proves stale receipt rejection, and exercises bounded stream recovery under deterministic pseudo-random chunking.
 
-RadioAdapters hardening exact tip: `29b7889bc1c1527b5830b223e8ae880c6c27e1ab`.
+RadioAdapters hardening checkpoint `29b7889bc1c1527b5830b223e8ae880c6c27e1ab`:
 - lifecycle `34811500875` SUCCESS.
 - Command `34811500964` SUCCESS.
 - exact M1 `34811500882` SUCCESS.
@@ -111,17 +114,37 @@ RadioAdapters hardening exact tip: `29b7889bc1c1527b5830b223e8ae880c6c27e1ab`.
 - ingress `34811500967` SUCCESS.
 - redesign `34811500932` SUCCESS.
 - Event `34811500917` SUCCESS.
-- New adversarial exact-M1 coverage proves all seven dispositions round-trip and share the same establishment predicate as Sockets; malformed control-prefix/reserved/admission values fail closed; wrong route/domain/transfer IDs cannot alias current correlation; `CompletedAndAcknowledged` direct-link evidence alone cannot complete A2; quiesce/rebind preserves stale suppression and transfer-ID exclusion.
+- Adversarial exact-M1 coverage proves all seven dispositions round-trip and share the same establishment predicate as Sockets; malformed control-prefix/reserved/admission values fail closed; wrong route/domain/transfer IDs cannot alias current correlation; `CompletedAndAcknowledged` direct-link evidence alone cannot complete A2; quiesce/rebind preserves stale suppression and transfer-ID exclusion.
 
 No production semantic change was needed by R9-23.
 
 ## Active continuation — R9-24 manifests/workflows/dependency/resource accounting
 
-Mandatory sequence:
-1. Rebaseline current RadioAdapters, Adapters, Radio, ESP-NOW, Sockets, Serial and WiFi tips before manifest mutation.
-2. Audit `library.json`, `library.properties`, CMake/component manifests and CI dependency checkouts for stale predecessor family dependencies/references introduced by the migration.
-3. Preserve the locked DAG: Radio remains Primitive-neutral; Adapters remains Radio-neutral; RadioAdapters owns the cross-domain composition; ESP-NOW should expose only its true System+Radio dependency after R9-16; Sockets should expose only genuine neutral/TLS/Timing dependencies, not removed family stacks.
-4. Add/strengthen automated dependency guards where useful, but do not manufacture manifests for repositories that intentionally do not have them.
-5. Record bounded resource/capacity surfaces for each final transport/provider and ensure CI covers them.
-6. Make no version-number changes.
-7. Continue directly into R9-25 documentation/integration closure, then authorized structural Tranches 10–11. Tranche 12 remains separate and unauthorized.
+### Source-first rebaseline recorded at user continuation 08:28
+
+- Primitive `5ecd87a55e6838f71d9d5715c10308a09029f7e1` before this handoff refresh.
+- RadioAdapters `29b7889bc1c1527b5830b223e8ae880c6c27e1ab`.
+- Adapters `4c22db73063041a488e497b75be903a98a89196a`.
+- Radio `84c6bbcac36d959378dcc69366bc18921298c257`.
+- ESP-NOW `9792c5cc7f10aa00bdf5830d4e973a26b3eb7128`.
+- Sockets `60e9af5f06423bc2307e05201884f434f3d3fd5e`; this is already an R9-24 metadata commit after the R9-23 hardening checkpoint.
+- Serial `3ef07be4252908458110682291fd6b1c1d181262`.
+- WiFi `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`.
+
+### R9-24 audit findings already confirmed
+
+1. ESP-NOW package metadata is aligned to the final provider boundary: `library.json` and `library.properties` expose only ESPressio-System + ESPressio-Radio; no Event/Command/State/Observable/Threads package dependency remains. No version change is required or authorized.
+2. Radio `library.json` remains Primitive-family-neutral and depends only on System, Task, Timing and Units. Radio has no `library.properties`; do not invent one merely for symmetry.
+3. Adapters `library.json` / `library.properties` correctly expose System + Primitive + Task and remain Radio-neutral.
+4. RadioAdapters intentionally has neither `library.json` nor `library.properties`; do not manufacture a package manifest unless repository packaging policy later explicitly requires one.
+5. Sockets `library.json` description/keywords were partially modernized by commit `60e9af5f06423bc2307e05201884f434f3d3fd5e`, but `library.properties` is still stale: it advertises removed Event/Command/State responsibilities and `PubSubClient` despite the final source tree containing only neutral Adapter transport, generic socket worker/session support, Security session mechanics and K1/K2 Timing evidence. This is the immediate metadata defect to correct.
+6. Sockets workflow dependency checkouts are already on `primitives_redesign`. The neutral Adapter workflow correctly compiles against Adapters + Primitive + System + Task, and host/security/timing workflows compile the genuine optional surfaces separately.
+7. ESP-NOW bounded resource accounting evidence: default fixed RX ring depth 16 (`ESPRESSIO_ESPNOW_RADIO_RX_QUEUE_DEPTH`), exactly one outstanding native TX, six-byte addresses, explicit finite lifecycle generation plus bounded per-generation handle sequence, fixed native ESP-NOW payload bound, no provider-local retry queue/application worker, and conservative cost/evidence only when explicitly characterized.
+
+### Mandatory continuation sequence
+
+1. Correct Sockets Arduino/package metadata without reintroducing removed family dependencies or changing version numbers.
+2. Audit/record final bounded resource surfaces for Sockets neutral transport and direct-Radio/Adapter composition, and strengthen automated dependency/resource guards where useful.
+3. Recheck manifest/workflow branch references after any writes and run/resolve exact-tip workflows. Infrastructure failures before runner allocation must be recorded distinctly from code/test failures.
+4. Promote R9-24 only when package/workflow/dependency/resource accounting is coherent at exact branch tips.
+5. Continue directly into R9-25 documentation/integration closure, then authorized structural Tranches 10–11. Tranche 12 remains separate and unauthorized.
