@@ -114,12 +114,34 @@ Exact final-tip workflows all SUCCESS:
 - Socket Adapter neutral transport contracts `34810378909`
 - Security Integration `34810378901`
 
-## Active continuation — R9-20 Serial classification/migration
+## R9-20 Serial transport classification — CLOSED; NEGATIVE TRANSPORT CLASSIFICATION
+
+Source baseline: `ESPressio-Serial/primitives_redesign` `3ef07be4252908458110682291fd6b1c1d181262`.
+
+No genuine device-to-device Primitive byte transport exists in current Serial source. The repository is explicitly the terminal/operator layer: Console consumes `System::IO::IByteInput`/`IByteOutput`/`IByteStream`; platform/framework byte transport belongs below Serial; Serial owns consoles, logging sink and diagnostics/monitors. `EventConsole` is an operator tooling consumer, not an `IEventTransport` or A2 lower transport.
+
+Therefore R9-20 intentionally creates no Serial wire protocol and makes no Serial source mutation. Stale Command/Event/State/Timing/Thread/WiFi/ESP-NOW/socket console/monitor consumers are handed to Tranche 10 D10-12/D10-13 for final descriptor/diagnostics migration.
+
+## R9-21 WiFi remote family bridge/handler classification — CLOSED; NO DIRECT REMOTE TRANSPORT PATH
+
+Source baseline: `ESPressio-WiFi/primitives_redesign` `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`.
+
+WiFi is a platform/service manager, not an ESPressio physical Radio data plane. Its current family integrations are local consumers:
+- `WiFiEventBridge` converts `IWiFiObserver` callbacks into local Event emissions; it owns no remote byte/session transport.
+- `WiFiCommandHandler` is a local administrative CommandRegistry consumer; it owns no remote Command transport.
+
+No WiFi-owned predecessor Event/Command remote transport or family-specific byte delivery path exists to migrate to A2 in R9-21. No synthetic WiFi Primitive transport is introduced. Migration of these local family consumer surfaces to final typed family APIs remains explicitly assigned to Tranche 10 D10-14.
+
+## R9-22 WiFiWorker/specialized-thread cleanup handoff — CLOSED AS EXPLICIT TRANCHE-10 HANDOFF
+
+`WiFiWorker` at the same WiFi baseline derives directly from the predecessor `PrecisionThread`, with mutable iteration-period/budget configuration and `Bump()` signalling. R9-22 does not prematurely redesign this consumer inside the transport tranche; the architecture explicitly hands it into common consumer migration. Tranche 10 D10-15 must move it to bare Thread + generic composition or a lower bounded Task worker as appropriate.
+
+## Active continuation — R9-23 cross-transport hardening
 
 Mandatory next sequence:
-1. Rebaseline `ESPressio-Serial/primitives_redesign` before mutation.
-2. Classify every relevant Serial subcomponent: only a genuine Primitive byte transport belongs in R9-20; monitor/console/introspection tooling belongs in Tranche 10.
-3. Do **not** invent a Serial Primitive wire protocol merely because Serial appears in the transport tranche.
-4. If a genuine Primitive-byte path exists, migrate only that path to neutral A2 ownership with finite lifecycle/backpressure; otherwise close R9-20 as a negative transport classification with no synthetic implementation.
-5. Continue R9-21/22 WiFi, R9-23 hardening, R9-24 manifests/workflows/accounting and R9-25 documentation/integration closure without permission pauses.
+1. Rebaseline current RadioAdapters, Adapters, Radio, Sockets and ESP-NOW tips before any hardening mutation.
+2. Add/verify congestion, restart, stale-handle/stale-completion, evidence-separation and family cross-transport tests/fuzz coverage without inventing new semantic owners.
+3. Preserve exact M1 meaning and generation-safe shutdown/restart contracts across direct Radio and Sockets; keep link/peer evidence distinct from destination Primitive admission.
+4. Treat ESP-NOW hosted-runner failure as infrastructure-blocked until a runner actually executes source; do not fake green evidence.
+5. Continue R9-24 manifests/workflows/dependency guards/resource accounting and R9-25 README/source-comment/tranche-wide integration validation without permission pauses.
 6. After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 remains separate and unauthorized.
