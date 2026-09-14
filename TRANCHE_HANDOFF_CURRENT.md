@@ -69,78 +69,57 @@ Current exact ESP-NOW source checkpoint:
 
 ### R9-12 final provider
 
-`ESPNowRadio : Radio::IRadio` now owns only provider-specific physical mechanics:
-- six-byte hardware addressing, ESP-NOW MTU/capabilities and stable shared Wi-Fi contention-domain identity;
-- fixed bounded RX ring and finite provider resource profile;
-- exactly one outstanding native TX with deferred terminal completion;
-- successful unicast native send callback maps to direct-link MAC peer acknowledgement only; broadcast success maps to transmission completion without peer acknowledgement;
-- neither native submission nor link acknowledgement is Primitive admission;
-- generation-separated transmission handles;
-- explicit conservative cost characterization, otherwise `RelativeOnly`;
-- native peer/channel/interface operations plus PMK/LMK ESP-NOW encryption mechanics.
+`ESPNowRadio : Radio::IRadio` now owns only provider-specific physical mechanics: six-byte hardware addressing; ESP-NOW MTU/capabilities; stable shared Wi-Fi contention-domain identity; fixed bounded RX ring; finite provider resource profile; exactly one outstanding native TX with deferred terminal completion; generation-separated handles; explicit conservative cost characterization (otherwise `RelativeOnly`); peer/channel/interface mechanics and PMK/LMK encryption.
 
-Dual-IDF provider contracts compile the actual header against IDF 5.4- and 5.5-style callback ABIs. An independent local executable harness passed both variants with `-Wall -Wextra -Werror` before hosted-runner failure began.
+Successful unicast native completion maps only to direct-link MAC peer acknowledgement; broadcast success maps to transmission completion without peer acknowledgement. Neither native submission nor link acknowledgement is Primitive admission.
 
 ### R9-13 Event predecessor removal
 
-Removed the bespoke `ESPNowEventTransport`, its second Event fragmentation/reassembly runtime, TaskExecutor ownership and predecessor EventTransportManager examples. Event-over-ESP-NOW now composes through Radio + RadioAdapters + the final Event family binding.
+Removed `ESPNowEventTransport`, its duplicate Event fragmentation/reassembly protocol, TaskExecutor ownership and predecessor EventTransportManager examples. Event-over-ESP-NOW now composes through Radio + RadioAdapters + final Event family binding.
 
 ### R9-14 Command predecessor removal
 
-Removed `ESPNowCommandTransport`, `ESPNowCommandEndpoint`, `ESPNowCommandProtocol`, their transport-specific tests and CommandPeer predecessor example. Command request/response semantics remain solely in the final Command family/A2 direct-Radio path.
+Removed `ESPNowCommandTransport`, `ESPNowCommandEndpoint`, `ESPNowCommandProtocol`, transport-specific tests/examples and the predecessor remote Command path. Command semantics remain solely in final Command + A2/direct-Radio composition.
 
 ### R9-15 clock migration
 
-Removed `ESPNowClockSynchronizer` and fixed-cadence clock examples. Added `ESPNowRadioTimingCapture`, which captures provider-callback monotonic coordinates plus an immutable Timing clock-model snapshot and explicit conservative uncertainty. It owns no estimator/cadence/System reconstruction.
-
-Radio `84c6bbcac36d959378dcc69366bc18921298c257` remains the direct-neighbour K1/K2 exchange owner through `RadioClockCoordinator`: cadence comes only from Timing, T1/T3 are late captures, T2/T4 use provider capture-time evidence, and there is no current-System-minus-elapsed historical reconstruction.
+Removed `ESPNowClockSynchronizer` and fixed-cadence clock examples. Added `ESPNowRadioTimingCapture`, which captures provider-callback monotonic coordinates, an immutable Timing clock-model snapshot and explicit conservative uncertainty. It owns no estimator, cadence or historical System-time reconstruction; Radio/Timing K1/K2 remains the direct-neighbour exchange owner.
 
 ### R9-16 dependency/family/worker cleanup
 
-At `9792c5cc...`, production `src/` is reduced to:
-- `ESPressio_ESPNow.hpp`
-- `ESPressio_ESPNowRadio.hpp`
-- `ESPressio_ESPNowRadioTiming.hpp`
+At `9792c5cc...`, production `src/` is reduced to `ESPressio_ESPNow.hpp`, `ESPressio_ESPNowRadio.hpp` and `ESPressio_ESPNowRadioTiming.hpp`. Predecessor `ESPNowTransport`, Observable graph, PrecisionThread worker, AsyncProtocolHandler, Event bridge/events, Command coupling, bespoke State/Security transports, peer-liveness legacy surface and old WiFi coordinator are removed. Direct package dependencies are System + Radio only. Manifest version remains `0.8.3`; no version number changed.
 
-Removed predecessor `ESPNowTransport`, Observable observer graph, PrecisionThread worker, AsyncProtocolHandler, Event bridge/events, Command administrative coupling, bespoke State transport, bespoke Security fragmentation transport/protocol, peer-liveness legacy surface and old WiFi coordinator. Native ESP-NOW peer encryption/channel/interface mechanics remain in the provider. WiFi shared-radio consumer composition is intentionally revisited in ordered R9-21/R9-22 against the final provider, not by preserving `ESPNowTransport`.
-
-Direct package dependencies are now System + Radio only. Manifest version remains `0.8.3`; no version number changed.
-
-### Hosted CI status — IMPORTANT
-
-GitHub Actions is currently failing before runner allocation, not during source execution. At exact tip `9792c5cc...`:
-- Tests run `34805336304`: both jobs have `runner_id=0`, empty runner name and `steps=[]`.
-- ESP-NOW Radio provider run `34805336457`: both jobs have `runner_id=0`, empty runner name and `steps=[]`.
-
-Therefore R9-12..R9-16 are **source-complete with durable tests present, but not claimed hosted-CI-green**. Do not misclassify these infrastructure failures as compiler/test failures or successes.
+Hosted CI remains infrastructure-blocked at this exact tip: Tests `34805336304` and ESP-NOW Radio provider `34805336457` both terminate before runner allocation with no executed steps. Do not misclassify those as compiler/test failures or successes.
 
 ## R9-17 Sockets neutral A2 transport/session binding — CLOSED; GREEN
 
-Exact promoted Sockets checkpoint:
-- `ESPressio-Sockets/primitives_redesign` `675fd906ddf0d1aa8a079287031983cfa275541e` (`Strengthen socket adapter restart contracts`).
-- Dedicated neutral-transport workflow `34809102690` SUCCESS at that exact SHA.
+Promoted Sockets checkpoint `675fd906ddf0d1aa8a079287031983cfa275541e`; dedicated neutral-transport workflow `34809102690` SUCCESS.
 
-`SocketAdapterTransport` is a fixed-capacity, family-neutral A2 lower transport. It owns only socket/session concerns: a bounded socket envelope, stream/datagram ingress framing, immutable route/session topology, nonblocking writer admission, finite stream assembly, per-session availability/generation, transport lifecycle generation, exact M1 receipt carriage and bounded correlation tables. It does not parse Event/Command/State representations and has no Radio/Mesh or dynamic `std::function`/`std::vector` dependency.
+`SocketAdapterTransport` is fixed-capacity and family-neutral. It owns bounded socket envelope/session framing, immutable route/session topology, nonblocking writer admission, finite stream assembly, per-session availability/generation, transport lifecycle generation, exact M1 receipt carriage and bounded correlation. It does not parse Event/Command/State representations.
 
-The exact-tip contract proves:
-- no-evidence transport acceptance remains distinct from destination Primitive admission;
-- destination-admission evidence uses bounded exact-M1 receipt correlation;
-- pending correlation capacity is finite;
-- session loss resolves owned pending work without inventing destination admission;
-- stale receipts are rejected after session-generation change and transport restart;
-- quiesced transports reject new outbound work and ingress;
-- stale inbound A2 completion captured before restart cannot emit a receipt into the replacement lifecycle;
-- bounded stream framing consumes partial input without unbounded buffering.
+## R9-18 Sockets family-stack / Event-bridge removal — CLOSED; GREEN
 
-## Active continuation — R9-18 Sockets family-stack / Event-bridge removal
+Implementation checkpoint `e0b7c995cfda61ae8189e23e2fb0b954121e4ca8` (`Remove parallel socket family transports`), validated at final exact Sockets tip `89876b27ad647be842ade71163f4e7a95053c6fd`.
+
+Removed the parallel socket-owned family runtimes and their predecessor consumers: Command protocol/session/types and TCP Command server; Event frame/events and Event bridge surfaces; State frame/session/client/server; obsolete family examples/docs/tests; socket/security worker Event bridges. Genuine socket/session/TLS mechanics remain below the neutral A2 binding.
+
+## R9-19 socket/network clock evidence — CLOSED; GREEN
+
+Clock migration checkpoint `37499d978287a1393cf765dc763b26cd4dbfb117` (`Migrate socket clock evidence to K1 K2`), final exact Sockets tip `89876b27ad647be842ade71163f4e7a95053c6fd`.
+
+The old TCP/UDP/SNTP synchronizers are removed. `SocketClockSynchronizationProtocol` now carries a bounded one-outstanding-exchange K1/K2 request/response seam with explicit T1/T2/T3/T4 captures, capture quality, conservative uncertainty, reference identity/reliability and continuity reset. `EvidenceDue()` is driven from Timing's synchronization deadline; the socket layer owns no fixed cadence, estimator, discipline or historical-current-System reconstruction.
+
+Exact final-tip workflows all SUCCESS:
+- Host Tests `34810378919`
+- Socket Adapter neutral transport contracts `34810378909`
+- Security Integration `34810378901`
+
+## Active continuation — R9-20 Serial classification/migration
 
 Mandatory next sequence:
-1. Rebaseline Sockets from promoted R9-17 tip `675fd906ddf0d1aa8a079287031983cfa275541e` before mutation.
-2. Audit and remove/reduce duplicate socket-owned Event family framing/transports and Event bridge surfaces now superseded by A2 family bindings.
-3. Audit and remove/reduce bespoke socket Command protocol/session/server semantics now owned by final Command runtime + A2.
-4. Audit and remove/reduce bespoke socket State frame/session/client/server semantics now owned by final State runtime + A2.
-5. Retain genuine socket/session/TLS mechanics: stream/datagram framing, endpoint addressing, connection/session lifecycle, reconnect/backpressure, TLS/security-session integration and bounded byte ingress/egress.
-6. R9-19 migrates socket/network clock evidence to the Timing K1/K2 quality/source model; do not prematurely delete legitimate network-time evidence mechanics during R9-18.
-7. Continue R9-20 Serial, R9-21/22 WiFi, R9-23 hardening, R9-24 manifests/workflows/accounting and R9-25 documentation/integration closure without permission pauses.
-
-After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 remains separate and unauthorized.
+1. Rebaseline `ESPressio-Serial/primitives_redesign` before mutation.
+2. Classify every relevant Serial subcomponent: only a genuine Primitive byte transport belongs in R9-20; monitor/console/introspection tooling belongs in Tranche 10.
+3. Do **not** invent a Serial Primitive wire protocol merely because Serial appears in the transport tranche.
+4. If a genuine Primitive-byte path exists, migrate only that path to neutral A2 ownership with finite lifecycle/backpressure; otherwise close R9-20 as a negative transport classification with no synthetic implementation.
+5. Continue R9-21/22 WiFi, R9-23 hardening, R9-24 manifests/workflows/accounting and R9-25 documentation/integration closure without permission pauses.
+6. After Tranche 9, continue authorized structural Tranches 10–11. Tranche 12 remains separate and unauthorized.
