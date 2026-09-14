@@ -1,15 +1,28 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-14
-Last synchronized continuation reference: user timestamp 08:28 Europe/Prague
+Continuation state: structural Tranche 9 CLOSED; Tranche 10 ACTIVE at D10-01
 
-This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture and governance. Live `primitives_redesign` branch tips are implementation truth and MUST be rebaselined before every new implementation step.
+This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_9_CLOSURE.md` is the formal Tranche-9 closure evidence. Live source branch tips remain implementation truth and MUST be rebaselined before every implementation step.
 
 ## Authorization boundary
 
-Implementation remains authorized through structural Tranches 8–11 without further permission pauses. Version changes, release/CHANGELOG finalization, `main` reintegration, tags/releases, Wiki publication, force pushes and backward-compatibility shims remain outside authorization. Tranche 12 release preparation remains separate.
+Implementation remains authorized through structural Tranches 8–11 without further permission pauses. Version changes, release/CHANGELOG finalization, `main` reintegration, tags/releases, Wiki publication, force pushes and backward-compatibility shims remain outside authorization. Tranche 12 release preparation remains separate and unauthorized.
 
-The user additionally requires this living handoff to remain present on `ESPressio-Primitive/primitives_redesign` and to be mirrored as an up-to-date downloadable conversation artifact whenever progress is reported.
+The user requires this living handoff to remain present on `ESPressio-Primitive/primitives_redesign` and to be mirrored as an up-to-date downloadable conversation artifact whenever substantive progress is reported.
+
+## Mandatory continuation protocol
+
+Before changing any repository:
+
+1. re-query the exact source-branch tip;
+2. inspect the current manifest/dependency boundary before implementation source;
+3. consume already-closed provider contracts rather than reintroducing predecessor APIs for compatibility;
+4. classify existing tests/examples semantically before migrating or executing them;
+5. keep changes small/coherent and validate exact-tip workflows;
+6. update this handoff in the same work session after substantive progression.
+
+Do not infer current implementation state from old tranche checkpoint hashes alone. Later branch tips supersede older implementation snapshots while the architecture handoff continues to own locked design/governance.
 
 ## Locked non-regression rules
 
@@ -20,126 +33,95 @@ The user additionally requires this living handoff to remain present on `ESPress
 - RadioAdapters is the only direct-Radio layer understanding both Radio and Primitive families; generic Adapters remains Radio-neutral.
 - Direct-Radio family envelope remains exactly 4 bytes before unchanged family representation: 2-byte LE family + 2-byte LE protocol.
 - Immediate physical peer and validated semantic `OriginalSource` remain distinct provenance facts.
+- Mesh membership incarnation is never a System runtime incarnation.
+- Adapter route/peer tokens are opaque transport facts and never encode/truncate `DeviceIdentifier`.
 - No family-local retry worker, retry queue, fragmentation engine or duplicate family runtime.
 - Registration/topology freezes before Running; bounded resources and nonblocking ingress remain mandatory.
 - Every neutral non-Mesh transport has finite lifecycle/generation; restart invalidates prior handles/correlation and stale completions cannot become current work.
 - Temporary backpressure/disconnection/restart must not create unbounded retry.
-- No structural-Tranche-9 version changes.
+- Dynamic/common consumers in Tranche 10 consume final descriptors/factories/diagnostics; they do not become new semantic owners.
+- Generic State access from dynamic tooling is read/inspect/observe only unless an explicit typed State owner API authorizes mutation.
+- No structural-tranche version changes.
 
 ## Closed foundation / structural work
 
-Foundation F01–F08 and structural Tranches 2–8 are CLOSED.
+Foundation F01–F08 and structural Tranches 2–9 are CLOSED.
 
-Key Tranche-8 promoted checkpoints:
-- Mesh `5f36b51f6ce570e97e4f95f975f039d61e2287cd`; workflows `34753038491`, `34753038532`, `34753038454` SUCCESS.
-- Mesh closure report `a832ce41c7ebd6174c7a06835ea24a871f843dcc`.
-- MeshAdapters `ce0a745498216248279aafc70d6603e49b10a6ab`; combined `34753328372`, State `34753328259`, recovered Command `34753328297` SUCCESS.
+Key closure artifacts:
 
-## Tranche 9 status
+- Tranche 8: Mesh closure report `TRANCHE_8_CLOSURE.md`; Mesh closure checkpoint `a832ce41c7ebd6174c7a06835ea24a871f843dcc` with the promoted Mesh/MeshAdapters contract suite already recorded in the architecture history.
+- Tranche 9 finite resource accounting: `TRANCHE_9_RESOURCE_ACCOUNTING.md`.
+- Tranche 9 formal closure: `TRANCHE_9_CLOSURE.md`, created at Primitive commit `27896d57002e9a4cffa543299fadd4255817727d`.
 
-### R9-02..R9-07 direct-Radio substrate — CLOSED; GREEN
+## Structural Tranche 9 — CLOSED
 
-- R9-02/03 RadioAdapters `3d3f1ed6a9bfdcc52fec2df385d37c71578d9bf2`; workflow `34753638473` SUCCESS.
-- R9-04/05 RadioAdapters `8a3d1cf9506357fe90937d6bcf1d19d4f1091da2`; ingress `34755161807`, redesign `34755161844` SUCCESS.
-- Neutral A2 metadata seam: Adapters `4c22db73063041a488e497b75be903a98a89196a`.
-- R9-06 RadioAdapters `819a2cd5e6f3dcec589d3dd586e5cc5ba1c54525`; outbound `34755755309`, ingress `34755755291`, redesign `34755755273` SUCCESS.
-- R9-07 Radio correlation substrate: Radio `84c6bbcac36d959378dcc69366bc18921298c257`; redesign `34764194951`, transfer-ID lease `34764194938` SUCCESS.
-- R9-07 exact M1: RadioAdapters `0e72a10f0034820e8bc8e0e72166bee9731b972e`; redesign `34768426144`, exact-M1 `34768426012`, ingress `34768426030`, outbound `34768426102` SUCCESS.
+Tranche 9 consolidated remote transport ownership onto A2 / Radio R3 / final family bindings and retired predecessor parallel Event/Command/State transport stacks.
 
-### R9-08 Event direct-Radio — CLOSED; GREEN
-RadioAdapters `a8092a2d914f7a0abf1a35c005e105f3c7d5a650`; ingress `34769579671`, outbound `34769579684`, redesign `34769579653`, exact-M1 `34769579682`, Event `34769579729` SUCCESS.
+Final R9-25 checkpoints at closure:
 
-### R9-09 Command direct-Radio — CLOSED; GREEN
-RadioAdapters `984731e214affdfb1152e0d9cf9bdb01b0e36a75`; ingress `34771857945`, outbound `34771857991`, redesign `34771857946`, exact-M1 `34771857903`, Event `34771858014`, Command `34771857995` SUCCESS.
+- **Adapters** `8a9dc6ce5f4c57361824637a1d614f7699e5dc73` — final A2 README/example/test/workflow surfaces aligned with the family/protocol/policy-aware lower-transport metadata seam. Exact-tip `Adapters architecture contracts` run `34818506121` SUCCESS across host contracts and ESP32 full-surface compile.
+- **RadioAdapters** `337859721246ab613c354a8073943e2d5c588946` — final architecture documentation aligned. Eight exact-tip workflows SUCCESS: exact M1 `34815298447`, outbound `34815298347`, redesign `34815298281`, Event `34815298299`, State `34815298326`, ingress `34815298283`, lifecycle `34815298303`, Command `34815298307`.
+- **Radio** `a43e700cd20b287217f805cebedc6e9fc126ca48` — final provider/R3 docs aligned; redesign run `34815347501` SUCCESS.
+- **Sockets** `3c0d23255295bc9b6609af1390b5c47ed6750641` — neutral A2/session architecture/docs aligned; neutral transport `34815223517`, Host/package `34815223486`, Security `34815223715` all SUCCESS.
+- **ESP-NOW** `a1718047c777a09656fc652be12a3dd99ce69624` — provider-only source/docs aligned. Runs `34815106167` and `34815106156` remain infrastructure-unavailable before runner allocation (`steps=[]`, `runner_id=0` for every job), not code-test failures. The earlier independent dual-IDF local provider harness remains fallback evidence. Hosted ESP32/provider execution at the final tip is a recorded automation uncertainty, not silently treated as green.
+- **Serial** `3ef07be4252908458110682291fd6b1c1d181262` — negative transport classification: operator/terminal tooling, no canonical device-to-device Primitive byte transport. Remaining family/tooling migration is D10-12/D10-13.
+- **WiFi** `8f959f19fbf4f7c3af42223ccc27521a4728f5dd` — no direct remote Primitive transport. Local Command/Event consumers move in D10-14; `WiFiWorker` moves in D10-15.
 
-### R9-10 State direct-Radio — CLOSED; GREEN
-RadioAdapters `285b184ffd84ddb1e97c4292154010c613eaa735`; ingress `34772597924`, outbound `34772597753`, redesign `34772597861`, exact-M1 `34772597866`, Event `34772597831`, Command `34772597748`, State `34772597901` SUCCESS.
+R9-25 specifically discovered and corrected stale Adapters test/example/workflow fixtures that still used the predecessor lower-transport callback shape. It also corrected one undersized deterministic test record fixture and one invalid wait-free timing assumption in a nonblocking admission test. Production A2 semantics did not require modification. This is important continuation context: do not resurrect those old fixtures or infer a production defect from the historical failed runs preceding `34818506121`.
 
-### R9-11 generation-safe lifecycle — CLOSED; GREEN
-RadioAdapters `fd34d0e91f5aed61476792e2bad39bbcacaed39b`; ingress `34774777059`, outbound `34774777129`, redesign `34774777106`, exact-M1 `34774777090`, Event `34774777107`, Command `34774777045`, State `34774777083`, lifecycle `34774777147` all SUCCESS.
+The 15-item Tranche-9 completion gate is recorded item-by-item in `TRANCHE_9_CLOSURE.md`; Tranche 9 must not be reopened unless live source contradicts a locked closure condition.
 
-### R9-12..R9-16 ESP-NOW consolidation — SOURCE COMPLETE; AUTOMATION FALLBACK ACTIVE
+## ACTIVE — Structural Tranche 10: common / dynamic consumer migration
 
-Final provider-boundary source checkpoint before the R9-24 guard: `9792c5cc7f10aa00bdf5830d4e973a26b3eb7128`.
+Tranche 10 consumes the final closed Primitive/family/provider surfaces in common tooling and dynamic consumers. It must not add a compatibility layer that recreates retired registries, Event brokers, PrecisionThread inheritance, transport-owned family runtimes, or generic State mutation.
 
-- R9-12: `ESPNowRadio : Radio::IRadio` owns bounded physical ESP-NOW mechanics only. One native TX is outstanding; completion is deferred; handles are generation-separated; six-byte addressing, MTU/capabilities, shared Wi-Fi contention-domain identity, peer/channel/interface mechanics and PMK/LMK remain provider-owned. Successful unicast native completion is direct-link MAC acknowledgement only, never Primitive admission.
-- R9-13: removed `ESPNowEventTransport`, duplicate Event fragmentation/reassembly/TaskExecutor path and predecessor Event examples.
-- R9-14: removed `ESPNowCommandTransport`, endpoint/protocol stack and transport-specific Command tests/examples.
-- R9-15: removed fixed-cadence `ESPNowClockSynchronizer`; `ESPNowRadioTimingCapture` exposes callback monotonic coordinate + immutable Timing model snapshot + uncertainty, with no local estimator/cadence/historical reconstruction.
-- R9-16: production `src/` is reduced to `ESPressio_ESPNow.hpp`, `ESPressio_ESPNowRadio.hpp`, `ESPressio_ESPNowRadioTiming.hpp`; predecessor Observable/PrecisionThread/AsyncProtocolHandler/Event/Command/State/Security/WiFi-coordinator surfaces are removed. Direct package dependencies are System + Radio. Version remains `0.8.3`.
-- Repository-owned dual-IDF provider contract tests exist and an earlier independent local harness compiled/passed both IDF 5.4- and 5.5-style callback variants with `-Wall -Wextra -Werror`, including deferred unicast ACK, broadcast completion without peer ACK, terminal failure, bounded RX, Busy on second send and lifecycle generation separation.
-- R9-24 guard checkpoint `04b21963aa461cd1a5a0ec977e1f60278d2df4b9` adds source/package dependency guards. Hosted Tests `34814293042` and provider `34814293069` terminated before runner allocation; every job reports `steps=null`. Per architecture section 21.1A.4 this is automation unavailable before meaningful execution, not code failure. Recursive source/manifest/workflow review and prior independent local contract execution are the fallback evidence. Outstanding uncertainty: hosted ESP32/provider execution has not run at this exact SHA.
+### Locked work order
 
-### R9-17 Sockets neutral A2 transport/session binding — CLOSED; GREEN
-Sockets checkpoint `675fd906ddf0d1aa8a079287031983cfa275541e`; neutral transport workflow `34809102690` SUCCESS. `SocketAdapterTransport` is fixed-capacity/family-neutral and owns bounded socket envelope/session framing, immutable route/session topology, nonblocking writer admission, finite stream assembly, lifecycle generations, exact M1 carriage and bounded correlation.
+1. **D10-01** — expose/consume final Primitive `TypeDirectory` discovery surface in dynamic tools.
+2. **D10-02** — consume P3 schema/constructibility metadata for family types.
+3. **D10-03** — replace Web raw CommandEnvelope → `InboundCommandEvent` ingress with typed Command construction.
+4. **D10-04** — migrate Web Event discovery/subscription to final Event descriptors/APIs.
+5. **D10-05** — migrate Web generic State inspection to final read-only descriptor/observation surface.
+6. **D10-06** — migrate WebSocket family bridges/transports onto Sockets/A2/family bindings as appropriate.
+7. **D10-07** — migrate retained Web clock helper to final Timing evidence/quality contract.
+8. **D10-08** — add Lua Primitive descriptor discovery adapter.
+9. **D10-09** — add Lua typed Command construction/admission adapter.
+10. **D10-10** — expose Lua Event operations only through final Event APIs.
+11. **D10-11** — expose generic Lua State as read/inspect only; no arbitrary mutation.
+12. **D10-12** — migrate Serial Command/Event/State consoles and monitors to final descriptors/diagnostics.
+13. **D10-13** — migrate Serial Thread/Timing/transport/WiFi monitors to final diagnostics seams.
+14. **D10-14** — migrate WiFi Command/Event integration to final family APIs.
+15. **D10-15** — migrate `WiFiWorker` away from `PrecisionThread` to generic execution composition.
+16. **D10-16** — validate Logging as fixed/bounded diagnostics seam; isolate optional Observable convenience.
+17. **D10-17** — perform ESP32 non-Radio downstream API cleanup.
+18. **D10-18** — prove Units remains dependency-neutral and update only integration references if required.
+19. **D10-19** — update tests/examples/manifests/workflows/dependency guards and dynamic-input security tests.
+20. **D10-20** — update docs/schema examples and complete cross-tool integration validation.
 
-### R9-18 family-stack/Event-bridge removal — CLOSED; GREEN
-Implementation `e0b7c995cfda61ae8189e23e2fb0b954121e4ca8`, validated through Sockets `89876b27ad647be842ade71163f4e7a95053c6fd`. Parallel Command/Event/State socket runtimes, predecessor Event bridges and obsolete consumers removed; genuine socket/session/TLS mechanics remain.
+### Tranche-10 completion gate
 
-### R9-19 socket/network clock evidence — CLOSED; GREEN
-Migration `37499d978287a1393cf765dc763b26cd4dbfb117`, validated at Sockets `89876b27ad647be842ade71163f4e7a95053c6fd`. One bounded K1/K2 exchange carries T1/T2/T3/T4, capture quality, uncertainty and reference reliability; Timing drives `EvidenceDue()` and owns estimator/discipline. Host `34810378919`, neutral transport `34810378909`, Security `34810378901` SUCCESS.
+Before Tranche 10 can close, prove at minimum:
 
-### R9-20 Serial transport classification — CLOSED; NEGATIVE TRANSPORT CLASSIFICATION
-Serial baseline `3ef07be4252908458110682291fd6b1c1d181262`. No genuine device-to-device Primitive byte transport exists. Serial is terminal/operator tooling over `System::IO`; no synthetic wire protocol or A2 lower transport was invented. Stale family consoles/monitors are handed to Tranche 10 D10-12/D10-13.
+- Web no longer performs raw `Event::InboundCommandEvent` command execution.
+- Dynamic Command construction is descriptor/schema/factory driven.
+- Dynamic tools no longer discover Commands through `CommandRegistry` or Events through `EventTransportManager`.
+- Generic State dynamic access is non-mutating.
+- Lua consumes descriptors and remains a consumer, not a semantic owner.
+- Serial consoles/monitors do not force predecessor family/runtime APIs.
+- `WiFiWorker` no longer derives from `PrecisionThread` or retains a compatibility inheritance base.
+- WiFi family bridge/handler paths use final family contracts.
+- Logging remains a fixed/bounded low-level diagnostics seam without upward dependency inversion; any Observable convenience is optional and isolated.
+- Units retains zero upward dependencies.
+- Dynamic input is bounded and family policy/security checked with explicit parse/factory failure; no heap fallback, raw reinterpretation, exception-driven retry, or unbounded construction path is introduced.
+- Existing tests/examples are semantically classified before migration/execution.
+- No version number changes.
 
-### R9-21 WiFi remote bridge classification — CLOSED; NO DIRECT REMOTE TRANSPORT PATH
-WiFi baseline `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`. `WiFiEventBridge` is local observer→Event and `WiFiCommandHandler` local administrative CommandRegistry consumption; neither owns a remote family byte transport. No synthetic WiFi transport was introduced. Final local family-consumer migration remains D10-14.
+## Immediate continuation — D10-01
 
-### R9-22 WiFiWorker handoff — CLOSED AS TRANCHE-10 HANDOFF
-`WiFiWorker` remains a predecessor `PrecisionThread` consumer and is explicitly handed to D10-15 for common consumer migration rather than prematurely redesigned inside the transport tranche.
+Rebaseline the exact live tips and manifests for Primitive, Serializable/P3, Web, Command, Event, State and any dynamic-tool consumer reached by discovery. Inspect the final Primitive `TypeDirectory`/descriptor surface first and determine whether D10-01 requires provider exposure work or is purely consumer migration. Prefer consuming the existing final provider surface; only add provider API if live source proves the locked discovery contract is genuinely absent.
 
-### R9-23 cross-transport hardening — CLOSED; GREEN
+Then inspect Web's current dynamic discovery paths before changing them. Do not jump directly to D10-03 command ingress before D10-01/D10-02 discovery/schema prerequisites are closed.
 
-Sockets `4ebc172bd3d797a16b169e2c9f46bdccb4909d04`: Host `34811393426`, neutral Adapter `34811393280`, Security `34811393283` SUCCESS.
+Lua remains `main` sourced only if no newly-authorized `primitives_redesign` branch exists at the moment of work; re-query before touching it. Its dependency refs must be migrated according to the locked branch/dependency rules when its D10 items are reached.
 
-RadioAdapters `29b7889bc1c1527b5830b223e8ae880c6c27e1ab`: lifecycle `34811500875`, Command `34811500964`, exact M1 `34811500882`, State `34811500883`, outbound `34811500894`, ingress `34811500967`, redesign `34811500932`, Event `34811500917` SUCCESS.
-
-No production semantic change was needed by R9-23.
-
-### R9-24 manifests/workflows/dependency/resource accounting — CLOSED
-
-R9-24 was rebaselined from live branch tips rather than replaying the earlier interrupted session.
-
-Final accounting artifacts / evidence:
-
-- `TRANCHE_9_RESOURCE_ACCOUNTING.md` added to Primitive at commit `676a3f6d105b5dbe5f96b148e7f55724c1050df9`. It records exact finite capacities/ownership for A2, direct-Radio M1/ingress/lower transport, the Radio provider contract, ESP-NOW, Sockets, and the negative Serial/WiFi transport classifications.
-- Adapters package boundary is System + Primitive + Task and remains Radio-neutral. Its redesign workflow uses only `primitives_redesign` dependency refs and publishes deterministic Adapter resource accounting.
-- Radio package boundary is System + Task + Timing + Units and remains Primitive-family-neutral. Its redesign workflows use `primitives_redesign` dependencies and execute deterministic Radio resource-accounting contracts.
-- RadioAdapters intentionally has no PlatformIO/Arduino manifest; no artificial manifest was invented.
-- ESP-NOW manifests expose only System + Radio. R9-24 guard commit `04b21963aa461cd1a5a0ec977e1f60278d2df4b9` asserts predecessor source eradication, package dependency closure and redesign branch refs. Actions `34814293042` / `34814293069` remain pre-runner infrastructure failures (`steps=null`); fallback evidence is recorded above.
-- Sockets stale Arduino metadata was corrected without version change. Final R9-24 Sockets checkpoint is `dda57dbad3f810f74778af7bfa096ca76651a0b7`. It self-guards the neutral package boundary and removal of stale Event/Command/State/PubSubClient claims. Exact-tip workflows are all GREEN: neutral Adapter `34814520351`, Host/package guard `34814520360`, Security `34814520349`.
-- Serial/WiFi metadata was not prematurely rewritten because the remaining family/tooling/worker surfaces are real current consumers explicitly handed to Tranche 10.
-- No version number changed.
-
-## ACTIVE NEXT — R9-25 README/source-comment and tranche-wide integration closure
-
-Locked purpose: update README/source comments and perform tranche-wide integration validation.
-
-Architecture completion gate to prove item-by-item before R9-25 / Tranche 9 closure:
-
-1. exact four-byte RadioAdapters prefix passes fixed vectors;
-2. Radio core has no Primitive-family dependency and Adapters has no Radio dependency;
-3. Event/Command/State direct-Radio bindings all use A1/A2 and exact M1 admission;
-4. link/peer ACK is never mislabeled destination Primitive admission;
-5. ESP-NOW no longer owns a second Event fragmentation/reassembly runtime;
-6. ESP-NOW clock path obeys K1/K2 and no fixed cadence/historical System reconstruction remains;
-7. Sockets exposes bounded neutral transport/session mechanics without parallel family execution stacks;
-8. Serial tooling is not mistaken for a transport; any real Serial byte transport uses A2;
-9. WiFi remote family bridges no longer depend on predecessor Command/Event delivery hacks;
-10. all transports have finite congestion/backpressure and generation-safe restart semantics;
-11. no old EventTransportManager/Event bridge or CommandRegistry transport path remains canonical;
-12. no extra transport-owned worker exists where A2/T1 owns that execution responsibility;
-13. manifests obey the locked DAG and no stale branch references remain;
-14. all existing tests are semantically classified before execution;
-15. no version number changed.
-
-Repository completion also requires implementation + aligned documentation comments + README/examples + semantically-reviewed tests and recorded validation evidence. Do not mark Tranche 9 CLOSED until this R9-25 documentation/integration pass is complete.
-
-Immediate continuation:
-
-- audit current READMEs, public source comments and examples in RadioAdapters, ESP-NOW, Sockets, Radio and Adapters against actual final APIs;
-- update/remove stale predecessor documentation/examples only where source has already migrated;
-- create `TRANCHE_9_CLOSURE.md` in Primitive with itemized completion-gate evidence and ESP-NOW automation fallback classification;
-- run/resolve exact-tip workflows triggered by documentation/guard edits;
-- promote R9-25 / Tranche 9 CLOSED only after the repository completion gate is satisfied;
-- continue automatically into authorized Tranche 10; Tranche 12 remains separate and unauthorized.
+After each substantive D10 milestone, update this living handoff and mirror it as a downloadable conversation artifact.
