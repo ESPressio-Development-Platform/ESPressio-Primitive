@@ -1,8 +1,8 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-14
-Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-12
-Latest user time reference: 15:03 Europe/Prague
+Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-14
+Latest user time reference: 17:00 Europe/Prague
 
 This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be rebaselined before every implementation step.
 
@@ -55,9 +55,9 @@ Locked work order:
 9. D10-09 Lua typed Command construction/admission adapter — **CLOSED/GREEN**
 10. D10-10 Lua Event operations through final Event APIs — **CLOSED/GREEN**
 11. D10-11 generic Lua State read/inspect only — **CLOSED/GREEN**
-12. D10-12 Serial Command/Event/State consoles/monitors -> final descriptors/diagnostics — **ACTIVE NEXT**
-13. D10-13 Serial Thread/Timing/transport/WiFi monitors -> final diagnostics seams
-14. D10-14 WiFi Command/Event integration -> final family APIs
+12. D10-12 Serial Command/Event/State consoles/monitors -> final descriptors/diagnostics — **CLOSED/GREEN**
+13. D10-13 Serial Thread/Timing/transport/WiFi monitors -> final diagnostics seams — **CLOSED/GREEN**
+14. D10-14 WiFi Command/Event integration -> final family APIs — **ACTIVE NEXT**
 15. D10-15 WiFiWorker away from PrecisionThread
 16. D10-16 Logging bounded diagnostics validation
 17. D10-17 ESP32 non-Radio downstream cleanup
@@ -105,29 +105,49 @@ Validation uses a real final State runtime and typed owners owned only by the te
 
 Initial focused failures were test-fixture-only: a guessed generic Serializable helper, then the wrong DirectBinary helper name, then an invalid assumption that strict Lua modules return `nil` for unexposed members. No State provider/runtime semantic change was made. Final exact-tip `Lua State Inspection Contract` run `34847762946` SUCCESS and exact-tip aggregate `Lua bindings` run `34847763087` SUCCESS. Lua core manifest remains System-only; no version change was made.
 
-## Immediate continuation — D10-12
+### D10-12 — Serial final Primitive-family tooling — CLOSED/GREEN
 
-D10-12 migrates Serial Command/Event/State consoles and monitors to final descriptors/diagnostics. Serial is operator/terminal tooling, **not** a genuine device-device Primitive byte transport; do not invent an A2 transport for symmetry.
+Serial remains operator/terminal tooling, not a device-device Primitive transport. Its core manifest remains version `0.8.1` with only System + Logging dependencies; Command/Event/State integrations remain opt-in surfaces.
 
-Exact pre-write baseline already observed before D10-12: Serial `3ef07be4252908458110682291fd6b1c1d181262`, core manifest version `0.8.1`, dependencies System + Logging only. Re-query this tip before the first write.
+The predecessor family architecture was removed rather than shimmed. Command console/monitor now use frozen TypeDirectory + final Command descriptors and family-owned dynamic submission, including requester-required rejection where the generic console has no requester. Event console/monitor use frozen TypeDirectory + final Event descriptors and family-owned dynamic dispatch. State monitor performs descriptor-driven read/inspection only and never obtains owner/mutation/convergence capability. Operator P3 input is bounded before family decode/construction and action authorization remains application-owned.
 
-Known predecessor family surfaces to classify/migrate:
+Stale Command regression fixtures were migrated from `CommandRegistry`, `CommandRequestEnvelope`, `InboundCommandEvent` and response-route registry assumptions to the final descriptor/P3 contract. Obsolete Event transport formatter/payload machinery, predecessor `EventTransportManager` stubs and old Command Event stubs were removed with no compatibility layer. The orphaned production `ESPressio_SerialTypes.hpp` transport-oriented Event monitor configuration (`EventMonitorMode`, payload/transport/hop/acceptance controls) was also removed and guarded against reintroduction.
 
-- `src/command-console/ESPressio_CommandConsole.hpp`: old `CommandRegistry`, `TextCommandParser`, `CommandRequestEnvelope`, `CommandEvents`, response-route registry and `Event::InboundCommandEvent` relay.
-- `src/command/ESPressio_CommandMonitor.hpp`: old `ICommandRegistryObserver` / `CommandRegistry` registration monitor.
-- `src/event/ESPressio_EventMonitor.hpp`: old `EventTransportManager` / `IEventTransportManagerObserver` transaction monitor with its own diagnostic Task/queue/snapshot path.
-- `src/event-console/ESPressio_EventConsole.hpp`: inspect before migration for predecessor Event dynamic/transport APIs.
-- `src/state/ESPressio_StateMonitor.hpp`: inspect before migration for predecessor State storage/codec APIs.
-- classify corresponding wrappers, host tests, stubs and workflows before deleting/replacing anything.
+Exact closure Serial tip: `a86612d78b57501870195c9d954d8993a8f25f97`. Exact-tip `Command Console Final Contract` run `34859791114` SUCCESS. The migrated family targets also compile in aggregate Host Tests; that aggregate build stops only on the independently-owned Logging/Timing mismatch reserved for D10-16.
 
-D10-12 requirements:
+### D10-13 — Serial final non-family diagnostics seams — CLOSED/GREEN
 
-1. consume final frozen TypeDirectory + family descriptors/diagnostics rather than registries/brokers;
-2. Command console actions must use final family-owned dynamic submission and preserve requester-required semantics rather than silently dropping responses;
-3. Event console actions must use final family-owned dynamic dispatch; do not recreate EventTransportManager or dynamic listener topology;
-4. State tooling is read/inspect only through final descriptor/`ReadDynamicState()`; no owner acquisition or generic mutation;
-5. operator input is bounded before P3 decode/construction and authorization must remain application-owned where an action can change behavior;
-6. Serial must not become a Primitive transport, retry owner, family runtime, scheduler or hidden worker system;
-7. reserve general Thread/Timing/transport/WiFi monitor migration for D10-13;
-8. preserve Serial core manifest as System + Logging unless a genuine core dependency is proven; family integrations should remain opt-in;
-9. add focused exact-tip validation/guards, classify aggregate workflows, update this handoff, then continue directly to D10-13.
+Serial Thread/Timing/provider diagnostics now consume final caller-owned seams instead of predecessor managers/workers/transports. Thread diagnostics consume final `IThread` snapshots; Timing diagnostics consume the final Timing quality/synchronization model; ESP-NOW diagnostics inspect the final Radio provider; Sockets diagnostics inspect final A2 transport/session state; WiFi diagnostics use the final WiFi observer/state surface.
+
+`DiagnosticMonitor` intentionally does not aggregate D10-12 family tooling: the family tooling uses Serial's platform-neutral byte-output writer while retained Arduino-facing Thread/Timing/provider monitors consume global `::Print`. No compatibility output bridge or duplicate lifecycle owner was introduced. `DiagnosticMonitor` therefore aggregates only compatible final non-family provider diagnostics. Predecessor `ThreadManager`, `ESPNowTransport`, `SocketWorker`, WiFi EventThread/EventTransport ownership paths are structurally rejected.
+
+Exact-tip `Final Diagnostics Contract` run `34859791169` SUCCESS at Serial `a86612d78b57501870195c9d954d8993a8f25f97`, including host aggregate compile, ownership guards and ESP32 WiFi monitor compile.
+
+Aggregate Serial Host Tests run `34859791064` remains RED solely because `ESPressio-Logging` tip `50bf7ed76698152c97651a75a28a760bb33dcccb` still consumes removed Timing symbols (`ClockSynchronizationState` and `.State` on the final `ClockSynchronizationStatus`). Command/Event/family tooling and WiFi monitor targets build successfully in that same run. This is explicit D10-16 Logging migration debt, not a D10-12/D10-13 failure. Serializable warning-as-error noise is also visible downstream and remains D10-19 validation debt if still present after provider migrations.
+
+Documentation/examples were classified, not silently treated as final evidence: Serial README and `examples/EventMonitor/EventMonitor.ino` still describe predecessor Event transport/registry surfaces and are reserved for D10-20 documentation/example closure.
+
+## Immediate continuation — D10-14
+
+D10-14 migrates WiFi Command/Event integrations onto the final family APIs while keeping WiFi-specific configuration, persistence and hardware/platform semantics WiFi-owned.
+
+Exact pre-write baseline already observed: WiFi `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`, manifest version `0.2.0`, core dependencies System + Observable + Serializable + Threads. Core manifest does not currently depend on Command or Event; preserve those integrations as opt-in surfaces unless a genuine core dependency is proven.
+
+Known predecessor surfaces already classified:
+
+- `src/ESPressio_WiFiCommandHandler.hpp` uses removed dynamic `CommandRegistry`, `CommandNode`, `CommandContext` and `CommandResult` tree semantics. It must become typed final Command integration rather than receive a compatibility registry.
+- `src/ESPressio_WiFiEventBridge.hpp` registers a valid WiFi observer but heap-allocates Event objects and calls removed instance `Queue()` semantics. Preserve the WiFi observer ownership model but dispatch through final typed Event APIs with bounded family-owned admission.
+- `src/ESPressio_WiFiEvents.hpp` already models WiFi-owned Serializable Event payloads, but the Types lack final Event `TypeId`, `CanonicalName`, live/pending capacity metadata required by the frozen TypeDirectory/runtime contract. Preserve WiFi semantic ownership while making these valid final Event Types.
+- `src/ESPressio_WiFiWorker.hpp` remains a separate D10-15 migration target; do not fold its PrecisionThread work into D10-14.
+
+D10-14 requirements:
+
+1. inspect final Event bridge patterns and final Command handler/response contracts before writing;
+2. preserve stable WiFi Event semantic contracts and assign/check collision-free family TypeIds + canonical names before registration;
+3. Event bridge uses typed `TryDispatch`/final Event runtime only: no heap `new`, instance `Queue`, EventTransportManager, retry worker or duplicate listener topology;
+4. replace the old path/tree Command registry with a finite typed Command set and final Command runtime handler bindings; do not recreate string-path identity inside Command;
+5. preserve response/requester semantics for operations that genuinely return Command responses; do not downgrade response-bearing operations merely to fit generic tooling;
+6. WiFi configuration/persistence/radio-control semantics remain owned by `WiFiManager`; the Command binding invokes those APIs rather than duplicating WiFi state;
+7. keep Command/Event dependencies opt-in where possible so the WiFi core manifest remains on its current neutral dependency boundary;
+8. classify current tests/workflow before migration, add focused final-family compile/runtime tests and predecessor guards, then validate exact-tip CI;
+9. no version change; update this handoff after substantive D10-14 progression and continue directly to D10-15 when its completion gate is met.
