@@ -1,10 +1,10 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-14
-Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-11
-Latest user time reference: 12:21 Europe/Prague
+Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-12
+Latest user time reference: 15:03 Europe/Prague
 
-This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_9_CLOSURE.md` is the formal Tranche-9 closure evidence. Live source branch tips are implementation truth and MUST be rebaselined before every implementation step.
+This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be rebaselined before every implementation step.
 
 ## Authorization boundary
 
@@ -40,10 +40,6 @@ Before changing any repository:
 - Dynamic input is bounded before parse/construction; no unbounded heap fallback or exception-driven retry path.
 - No structural-tranche version changes.
 
-## Closed structural work
-
-Foundation F01–F08 and structural Tranches 2–9 are CLOSED. Important closure artifacts remain `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md`. Tranche 9 must not be reopened unless live source contradicts a locked closure condition.
-
 ## Structural Tranche 10 — ACTIVE
 
 Locked work order:
@@ -58,8 +54,8 @@ Locked work order:
 8. D10-08 Lua Primitive descriptor discovery adapter — **CLOSED/GREEN**
 9. D10-09 Lua typed Command construction/admission adapter — **CLOSED/GREEN**
 10. D10-10 Lua Event operations through final Event APIs — **CLOSED/GREEN**
-11. D10-11 generic Lua State read/inspect only — **ACTIVE NEXT**
-12. D10-12 Serial Command/Event/State consoles/monitors -> final descriptors/diagnostics
+11. D10-11 generic Lua State read/inspect only — **CLOSED/GREEN**
+12. D10-12 Serial Command/Event/State consoles/monitors -> final descriptors/diagnostics — **ACTIVE NEXT**
 13. D10-13 Serial Thread/Timing/transport/WiFi monitors -> final diagnostics seams
 14. D10-14 WiFi Command/Event integration -> final family APIs
 15. D10-15 WiFiWorker away from PrecisionThread
@@ -69,110 +65,69 @@ Locked work order:
 19. D10-19 tests/examples/manifests/workflows/dependency guards/security tests
 20. D10-20 docs/schema examples/cross-tool integration validation
 
-### D10-01 — CLOSED/GREEN
+## Closed D10 evidence summary
 
-Primitive already exposed the final fixed-capacity frozen `TypeDirectory` / immutable `TypeDirectoryView`; no provider redesign was needed. Web added opt-in deterministic discovery without interpreting family extensions or inventing a registry. Focused `Primitive Discovery Contract` run `34820218599` succeeded. Aggregate Web failures were classified as later Tranche-10 predecessor consumers rather than repaired with compatibility APIs.
+### D10-01 through D10-05
 
-### D10-02 — CLOSED/GREEN
+- D10-01: final fixed-capacity frozen Primitive `TypeDirectory` / immutable `TypeDirectoryView` consumed by Web; focused run `34820218599` SUCCESS.
+- D10-02: P3 remains Serializable-owned; dynamic construction remains family-owned. Event provider `532d04e1200b04b5734b68467018c597ae996223`; Command provider `658a9f9064a8ef58a0016d041a29be0c8ca3da7f`; State provider `25637a7555e3a03f1d709bd8e37340bc4d545b6e`; Web schema run `34823200466` SUCCESS.
+- D10-03: Web raw `CommandRequestEnvelope` / `InboundCommandEvent` path replaced with bounded TypeDirectory/P3/family-owned `Command::SubmitDynamicCommand`; run `34823927243` SUCCESS.
+- D10-04: obsolete HTTP `IEventTransport` path removed; bounded descriptor-driven `Event::DispatchDynamicEvent` with explicit authorization; run `34825328341` SUCCESS.
+- D10-05: Web State tooling is GET/HEAD read-only through immutable State descriptors + `ReadDynamicState()`, including exact `TruthTime`; run `34827626308` SUCCESS. No generic mutation was added.
 
-P3 remained Serializable-owned and constructibility remained family-owned. Event dynamic construction/dispatch stays inside Event's fixed runtime/pool; Command dynamic fire-and-forget construction stays inside Command's fixed request pool; response-bearing Commands remain requester-required; State generic dynamic access remains read-only. Provider checkpoints: Serializable `2a0dff001cae91365d90f20a382036bd878f53e4`, Event `532d04e1200b04b5734b68467018c597ae996223`, Command `658a9f9064a8ef58a0016d041a29be0c8ca3da7f`, State `25637a7555e3a03f1d709bd8e37340bc4d545b6e`. Web P3 consumer focused run `34823200466` succeeded.
+### D10-06 — WebSocket final transport composition
 
-### D10-03 — CLOSED/GREEN
+Web composes binary WebSocket sessions into final Sockets/A2 through `ESPressio_WebSocketSocketAdapter.hpp`; route slots freeze before Sockets start and Web owns no Primitive-family transport semantics. Predecessor WebSocket Event bridge/events/transport artifacts were removed with no shim. Exact post-deletion focused run `34830311993` SUCCESS; aggregate Web Host Tests `34830311963` SUCCESS.
 
-Web replaced the predecessor raw `CommandRequestEnvelope` -> dynamically allocated `Event::InboundCommandEvent` path with bounded descriptor-driven typed Command admission. Frozen TypeDirectory lookup and caller-owned authorization precede bounded family-owned construction; fire-and-forget requests use `Command::SubmitDynamicCommand`; requester-required Commands fail explicitly rather than dropping response semantics. No CommandRegistry, raw envelope, Event wrapper or hidden heap fallback remains. Focused `Primitive Command Ingress Contract` run `34823927243` SUCCESS at Web `eddc6fa57f2f9cdd4dff7035517ee4fbebb27b61`.
+### D10-07 — Web clock helper final Timing evidence
 
-### D10-04 — CLOSED/GREEN
+Web clock synchronization now composes Sockets V2 K1/K2 evidence with final `Timing::IClockSynchronizationTarget`; Web owns no fixed cadence, estimator, historical timestamp reconstruction or clock worker. Exact focused `WebSocket Timing Evidence Contract` run `34831049103` SUCCESS; aggregate Web Host Tests `34831049006` SUCCESS.
 
-Web removed the obsolete HTTP `IEventTransport` / `EventTransportBuffer` receiver and heap-resized packet path. The replacement performs frozen Event descriptor discovery, caller-owned authorization, bounded DirectBinary/CBOR/JSON P3 input and family-owned `Event::DispatchDynamicEvent`. Final Event has no runtime listener registry: listener/target topology is frozen before `Runtime::Start()`. Focused `Primitive Event Web Contract` run `34825328341` SUCCESS at Web `d92f22d85422a0f8156ce533717e696b1bbe9276`.
+### D10-08 — Lua Primitive discovery
 
-### D10-05 — CLOSED/GREEN
+Lua has explicit `primitives_redesign`. `ESPressio_LuaPrimitiveDiscovery.hpp` borrows one frozen TypeDirectory view and exposes common metadata only; no second mutable registry and no FamilyExtension authorization handle. Lua core manifest remains System-only, version `1.0.0`. Focused run `34831877208` SUCCESS at Lua `d15ad661a9da41224670f2b30d7be357a598ac6b`.
 
-State already exposed the required immutable tooling seam in `StateTypeDescriptor`: bounded per-format metadata plus family-owned `ReadDynamicState()`. Web replaced codec-era State tooling with fixed-capacity `HttpStateInspection`, GET/HEAD only, caller-owned selection/authorization, bounded DirectBinary/CBOR/JSON, and immutable `TruthTime`. No generic mutation API or `SetByTypeId` was added. Exact-tip `Primitive State Web Contract` run `34827626308` SUCCESS at Web `9690f3da1081fab687744ccabe0cd4a963afe5dc`.
+### D10-09 — Lua typed Command admission
 
-### D10-06 — CLOSED/GREEN
+Lua opt-in `ESPressio_LuaCommand.hpp` uses final Command descriptors and bounded P3 bytes with application-owned authorization. Fire-and-forget submission delegates to `Command::SubmitDynamicCommand`; response-bearing Commands remain requester-required and are rejected by the generic Lua path. Lua owns no Command registry/pool/retry/transport/worker lifecycle. Closure tip `ce1e7a5cb83b150f52e99160d5c6c8e97e90c457`; focused run `34834072387` SUCCESS; aggregate `34834072357` SUCCESS.
 
-Session references: user time 11:08 through 11:47 Europe/Prague.
+### D10-10 — Lua Event dispatch
 
-Exact provider rebaseline before writes: Web `9690f3da1081fab687744ccabe0cd4a963afe5dc`, Sockets `3c0d23255295bc9b6609af1390b5c47ed6750641`, Adapters `8a9dc6ce5f4c57361824637a1d614f7699e5dc73`, Event `532d04e1200b04b5734b68467018c597ae996223`, Command `658a9f9064a8ef58a0016d041a29be0c8ca3da7f`, State `25637a7555e3a03f1d709bd8e37340bc4d545b6e`.
+Lua opt-in `ESPressio_LuaEvent.hpp` uses frozen TypeDirectory + immutable Event descriptors, explicit application authorization and bounded P3. Family-owned `Event::DispatchDynamicEvent` owns decode/construction/occurrence/pool/lane/dispatch; Lua owns no listener topology, occurrence identity lifecycle, retry, transport or worker. Closure tip `8eeff358a862391856b70903b42c074ebf2c25f1`; focused run `34834794887` SUCCESS; aggregate `34834794904` SUCCESS.
 
-Final Sockets already owned the complete neutral lower-transport seam: fixed pre-frozen route/session topology, bounded stream/datagram frame storage, finite outbound admission correlations/inbound receipt slots, exact destination-Primitive admission receipt carriage, synchronous accepted-write ownership, generation-safe availability/restart, quiesce and bounded service without a transport-owned polling worker. No Sockets provider expansion was required.
+### D10-11 — Lua State read/inspection — CLOSED/GREEN
 
-Web outcome:
+Provider checkpoint: State `25637a7555e3a03f1d709bd8e37340bc4d545b6e`. Lua exact closure tip `e09f01755b8ebf4094f66270e7cce13a6399c06b`.
 
-- `4216d4a8e29066cac24607b91b760c97d3b072db` added `ESPressio_WebSocketSocketAdapter.hpp`, composing WebSocket binary sessions into final Sockets/A2 without family semantics;
-- application-composed route slots freeze before Sockets start; dynamic connections only occupy/release those fixed slots and toggle availability/generation;
-- server connection-to-route choice is application-owned rather than derived from connection ID;
-- binary ingress feeds Sockets; outbound Sockets frames use `SendBinary`; text remains Web presentation traffic;
-- `7831a883a1e7d6a196a58ce0aac6241d7b23fbe3` added real Sockets/A2 integration tests; `7153edddbc9f1b3c8cbff5d36def9df10657f4e0` replaced the aggregate predecessor target; `f01a38fa3e0906be48d6a669d42b693ed10d2054` added final provider checkouts; `afad4a8f193f57e014ed9a1ab478db8962f4da8c` added focused validation.
+Lua added opt-in `ESPressio_LuaState.hpp` over the final immutable `StateTypeDescriptor`, frozen TypeDirectory and family-owned `ReadDynamicState()`. An application-owned `ILuaStateAuthorizer` is required before family read. A compile-time fixed-capacity result owns one bounded DirectBinary/CBOR/JSON representation long enough to push it into Lua; successful results expose exact immutable `TruthTime` as high/low 32-bit nanoseconds plus reliability. No State owner, mutation, convergence/session, retry, routing, transport or worker capability is exposed.
 
-Four predecessor artifacts were removed with no shim:
+Validation uses a real final State runtime and typed owners owned only by the test application. It proves no-value, current value `42`, canonical DirectBinary/CBOR/JSON bytes, exact `TruthTime`, authorization-before-read, non-Serializable/local State rejection, invalid index, finite output capacity and unchanged authoritative typed State after all Lua reads. The focused workflow guard rejects mutation/lifecycle names from production Lua State integration.
 
-- `ESPressio_WebSocketEventBridge.hpp` at `d212211b25ea549645ef33ef6aa62f54f977e13b`;
-- `ESPressio_WebSocketEvents.hpp` at `1e7da1cf189d9d2c9882d9e2632b8f72edc65278`;
-- `ESPressio_WebSocketEventTransport.hpp` at `b141317fee27873406239dd6cce7db867a6d1f93`;
-- `test_websocket_event_bridge.cpp` at `6756fe64b94ef1b6cfe063e4daba531920c3db16`.
+Initial focused failures were test-fixture-only: a guessed generic Serializable helper, then the wrong DirectBinary helper name, then an invalid assumption that strict Lua modules return `nil` for unexposed members. No State provider/runtime semantic change was made. Final exact-tip `Lua State Inspection Contract` run `34847762946` SUCCESS and exact-tip aggregate `Lua bindings` run `34847763087` SUCCESS. Lua core manifest remains System-only; no version change was made.
 
-`527ede39aae7ee86f6370be6e604a0fb523b0bdc` strengthened the focused workflow to keep those paths absent. Exact post-deletion focused run `34830311993` SUCCESS and aggregate Host Tests run `34830311963` SUCCESS.
+## Immediate continuation — D10-12
 
-### D10-07 — CLOSED/GREEN
+D10-12 migrates Serial Command/Event/State consoles and monitors to final descriptors/diagnostics. Serial is operator/terminal tooling, **not** a genuine device-device Primitive byte transport; do not invent an A2 transport for symmetry.
 
-Provider rebaseline: Web `527ede39aae7ee86f6370be6e604a0fb523b0bdc`; Timing `f94e82459ebbca42e74e210e306be0861cc8d73b`; Sockets `3c0d23255295bc9b6609af1390b5c47ed6750641`. Timing still depends only on System + Units + Observable. Sockets V2 remains the bounded socket/network K1/K2 wire seam and explicitly owns no worker, estimator or fixed cadence.
+Exact pre-write baseline already observed before D10-12: Serial `3ef07be4252908458110682291fd6b1c1d181262`, core manifest version `0.8.1`, dependencies System + Logging only. Re-query this tip before the first write.
 
-The retained Web `ESPressio_WebSocketClockSynchronization.hpp` was classified as predecessor because it depended on removed `PrecisionThread`, owned `SynchronizationIntervalMilliseconds`/automatic periodic scheduling, used the old templated synchronization target/message API and reconstructed receive time by asking the protocol for a later local timestamp after callback entry.
+Known predecessor family surfaces to classify/migrate:
 
-Final Web outcome:
+- `src/command-console/ESPressio_CommandConsole.hpp`: old `CommandRegistry`, `TextCommandParser`, `CommandRequestEnvelope`, `CommandEvents`, response-route registry and `Event::InboundCommandEvent` relay.
+- `src/command/ESPressio_CommandMonitor.hpp`: old `ICommandRegistryObserver` / `CommandRegistry` registration monitor.
+- `src/event/ESPressio_EventMonitor.hpp`: old `EventTransportManager` / `IEventTransportManagerObserver` transaction monitor with its own diagnostic Task/queue/snapshot path.
+- `src/event-console/ESPressio_EventConsole.hpp`: inspect before migration for predecessor Event dynamic/transport APIs.
+- `src/state/ESPressio_StateMonitor.hpp`: inspect before migration for predecessor State storage/codec APIs.
+- classify corresponding wrappers, host tests, stubs and workflows before deleting/replacing anything.
 
-- `3a489e7a2cccfa40c6562ce808601d9cd1f84fef` replaced the helper with Sockets V2 + final `Timing::IClockSynchronizationTarget` composition;
-- Web owns no clock worker and no synchronization cadence. The embedding bounded service context calls one explicit `Service(nowMonotonic)` quantum; Sockets `EvidenceDue()` delegates the due decision to Timing's adaptive `NextRequiredSynchronizationMonotonic`;
-- `ServiceTimeout()` records missed evidence deadlines through Timing rather than creating retry/cadence logic in Web;
-- client connect/disconnect publishes reference availability and real continuity loss to the final protocol; stale pending evidence is not reused across disconnection;
-- provider/composition code may supply an explicit `WebSocketClockReceiveCaptureSource` returning the exact `Timing::ClockTimestampCapture<>` taken near the concrete receive boundary. Quality and uncertainty remain Timing-domain evidence and must be truthful;
-- when no provider capture is supplied, the portable helper uses only `SocketClockSynchronizationProtocol::CaptureServiceReceive()`, i.e. an immediate callback-time `SoftwareUnbounded` capture with unknown uncertainty. It never upgrades that evidence or reconstructs historical receive System time;
-- a nonblocking atomic gate prevents concurrent service/receive mutation of the one protocol state without introducing an internal blocking worker/queue;
-- non-clock WebSocket binary frames are ignored by clock composition rather than reinterpreted.
+D10-12 requirements:
 
-Validation:
-
-- `e187e1b4527962d69b18f0471aad7ae856bbcacd` added a complete WebSocket K1/K2 exchange contract with caller-supplied T2/T4 captures, exact T1/T2/T3/T4 preservation into Timing, adaptive deadline service, timeout diagnostics, disconnect continuity loss and unrelated-frame rejection;
-- `2525fdd6175408abde5aa007243414dd18ff048b` added the clock target to the aggregate host graph;
-- `52d0166ed34ebc563a5eef5be214dd1ad7a3476c` added focused validation with a guard rejecting `PrecisionThread`, fixed synchronization interval, automatic cadence, old request-message/broadcast APIs and `GetLocalTimestamp` reconstruction.
-- focused `WebSocket Timing Evidence Contract` run `34831049103` SUCCESS on first exact-tip execution;
-- aggregate `Host Tests` run `34831049006` SUCCESS: configure, full build and all current Web CTest targets passed against final providers.
-
-No Timing or Sockets provider change and no version change was required.
-
-### D10-08 — CLOSED/GREEN
-
-Lua now has an explicit `primitives_redesign` branch. `ESPressio_LuaPrimitiveDiscovery.hpp` borrows a frozen `Primitive::TypeDirectoryView` and exposes deterministic common descriptor metadata into Lua without copying descriptors into a second registry and without publishing family-extension pointers as authorization handles. Discovery remains metadata-only; Command/Event/State semantics are not imported by this adapter. Core Lua manifest ownership remains System-only and version `1.0.0` was unchanged.
-
-Focused `Primitive Discovery Contract` run `34831877208` SUCCESS at Lua `d15ad661a9da41224670f2b30d7be357a598ac6b`.
-
-### D10-09 — CLOSED/GREEN
-
-Provider checkpoint: Command `658a9f9064a8ef58a0016d041a29be0c8ca3da7f`; Lua exact closure tip `ce1e7a5cb83b150f52e99160d5c6c8e97e90c457`.
-
-Lua added opt-in `ESPressio_LuaCommand.hpp` over the final Command descriptor/factory surface. The adapter borrows a frozen TypeDirectory view, requires an application-owned `ILuaCommandAuthorizer`, bounds P3 bytes before family construction, and delegates fire-and-forget typed construction/admission to `Command::SubmitDynamicCommand`. Response-bearing Commands remain requester-required and are explicitly rejected by the generic Lua admission path rather than silently losing response semantics. Lua owns no Command registry, requester shim, execution pool, retry queue, transport, worker or Command ID lifecycle.
-
-Validation uses canonical P3 JSON bytes generated by Serializable itself rather than assuming a presentation spelling. The real Command runtime proves one typed execution after accepted Lua submission; invalid schema does not execute the handler; denied authorization fails before construction; response-bearing, invalid-index and oversized inputs fail explicitly. Focused `Lua Command Admission Contract` run `34834072387` SUCCESS. Aggregate `Lua bindings` run `34834072357` also SUCCESS for both native sanitizer tests and ESP32 demo firmware compile/link. No manifest dependency expansion and no version change were required.
-
-### D10-10 — CLOSED/GREEN
-
-Provider checkpoint: Event `532d04e1200b04b5734b68467018c597ae996223`; Lua exact closure tip `8eeff358a862391856b70903b42c074ebf2c25f1`.
-
-Lua added opt-in `ESPressio_LuaEvent.hpp` over the final frozen TypeDirectory and immutable `EventTypeDescriptor`. An application-owned `ILuaEventAuthorizer` is required before family construction/dispatch. DirectBinary/CBOR/JSON bytes are bounded from Event's Serializable schema before `Event::DispatchDynamicEvent`; the Event family alone owns decode, construction, occurrence identity, fixed pool/lane and dispatch. Lua exposes family dispatch statuses only and does not retain `ConceptualMessageId`, listener/target topology, retry, routing, transport or worker state.
-
-Focused validation uses a real final Event runtime and an external target staged before `Runtime::Start()`. Canonical JSON is produced by Serializable itself. The contract proves accepted typed dispatch, invalid-schema rejection, authorization-before-construction, local/non-Serializable Event rejection, invalid index and payload bounds, plus genuine Event-family `CapacityUnavailable` while the family lane is owed to a backpressured target; Lua adds no queue or retry. Initial focused run `34834667252` SUCCESS. Exact closure-tip focused `Lua Event Dispatch Contract` run `34834794887` SUCCESS. Exact-tip aggregate `Lua bindings` run `34834794904` SUCCESS for native sanitizer tests and ESP32 demo firmware compile/link. Core Lua manifest remains System-only and no version change was made.
-
-## Immediate continuation — D10-11
-
-D10-11 adds generic Lua State read/inspection only.
-
-Before writes:
-
-1. re-query exact Lua and State `primitives_redesign` tips and inspect both manifest boundaries;
-2. consume the final immutable `StateTypeDescriptor`, frozen TypeDirectory and family-owned `ReadDynamicState()` only;
-3. require explicit application-owned authorization for inspection; descriptor/schema discovery remains metadata rather than permission;
-4. expose bounded DirectBinary/CBOR/JSON current truth plus immutable `TruthTime` without inventing generic mutation, owner acquisition, `SetByTypeId`, convergence control, sessions or transport behavior;
-5. non-Serializable/local State must fail explicitly rather than acquiring a tooling codec;
-6. validate against a real State runtime/owner created by the test application, proving no-value, current-value, format/bounds, authorization and read-only behavior;
-7. run exact-tip focused and aggregate Lua workflows, update this handoff, then continue directly to D10-12.
+1. consume final frozen TypeDirectory + family descriptors/diagnostics rather than registries/brokers;
+2. Command console actions must use final family-owned dynamic submission and preserve requester-required semantics rather than silently dropping responses;
+3. Event console actions must use final family-owned dynamic dispatch; do not recreate EventTransportManager or dynamic listener topology;
+4. State tooling is read/inspect only through final descriptor/`ReadDynamicState()`; no owner acquisition or generic mutation;
+5. operator input is bounded before P3 decode/construction and authorization must remain application-owned where an action can change behavior;
+6. Serial must not become a Primitive transport, retry owner, family runtime, scheduler or hidden worker system;
+7. reserve general Thread/Timing/transport/WiFi monitor migration for D10-13;
+8. preserve Serial core manifest as System + Logging unless a genuine core dependency is proven; family integrations should remain opt-in;
+9. add focused exact-tip validation/guards, classify aggregate workflows, update this handoff, then continue directly to D10-13.
