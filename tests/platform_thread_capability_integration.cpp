@@ -55,7 +55,7 @@ struct Query final : C::Command<Query, Reply> {
     static constexpr const char* CanonicalName = "Test.Platform.ComposedCommand";
     static constexpr std::size_t MaximumLiveInstances = 2;
     static constexpr std::size_t MaximumPendingExecutions = 1;
-    static constexpr std::size_t MaximumPendingResponses = 1;
+    static constexpr std::size_t MaximumPendingResponses = 2;
     using ExecutionAdmissionPolicy = C::RequiredExecution;
     int Value = 0;
     explicit Query(int value = 0) noexcept : Value(value) {}
@@ -134,7 +134,7 @@ static Task::TaskExecutorConfiguration RouterConfiguration() {
     Task::TaskExecutorConfiguration configuration{};
     configuration.Execution.Name = "platformCapabilityRouter";
     configuration.Execution.StackSize = 4096;
-    configuration.QueueDepth = 1;
+    configuration.QueueDepth = 2;
     configuration.OverflowPolicy = Task::TaskQueueOverflowPolicy::Reject;
     configuration.QueueMemoryPolicy = Task::TaskMemoryPolicy::Internal;
     return configuration;
@@ -149,14 +149,16 @@ int main() {
     assert(System::RuntimeIdentity::Install({System::DeviceIdentifier{device}, System::RuntimeIncarnationId{1}})
            == System::RuntimeIdentity::InstallationStatus::Success);
 
-    Primitive::TypeDirectory<3> directory;
-    assert(directory.Register<PulseEvent>() == Primitive::TypeDirectoryRegistrationStatus::Success);
+    Primitive::TypeDirectory<2> directory;
     assert(directory.Register<Query>() == Primitive::TypeDirectoryRegistrationStatus::Success);
     assert(directory.Register<ObservedState>() == Primitive::TypeDirectoryRegistrationStatus::Success);
     assert(directory.Initialize() == Primitive::TypeDirectoryInitializationStatus::Success);
 
-    E::Runtime eventRuntime;
-    assert(eventRuntime.Initialize(directory.View()) == E::EventRuntimeStatus::Success);
+    // This integration proof exercises a local Event Type directly through its final
+    // per-Type runtime. P1 registration is deliberately unnecessary for a non-dynamic,
+    // non-transmissible local Event and would require a descriptor tier the test does not use.
+    auto& eventRuntime = E::EventTypeRuntime<PulseEvent>::Get();
+    assert(eventRuntime.Initialize(&platform, {}) == E::EventRuntimeStatus::Success);
 
     using StateRuntime = S::Runtime<S::TypeConfiguration<ObservedState>>;
     StateRuntime stateRuntime;
@@ -164,7 +166,7 @@ int main() {
     assert(stateOwner);
     assert(stateRuntime.Initialize(directory.View(), &CaptureTruthTime) == S::StateRuntimeStatus::Success);
 
-    C::CommandResponseRouter<1> router(RouterConfiguration());
+    C::CommandResponseRouter<2> router(RouterConfiguration());
     C::RuntimeConfiguration commandConfiguration{};
     commandConfiguration.ExecutionLane.Name = "platformCapabilityCommand";
     commandConfiguration.ExecutionLane.StackSize = 4096;
@@ -185,7 +187,8 @@ int main() {
     assert(platform.Created.load() == tasksBeforeWorker + 1); // exactly one root Task for all four capabilities
     worker.ConfigureCadence(1000000000ULL);
 
-    assert(eventRuntime.Start() == E::EventRuntimeStatus::Success);
+    assert(eventRuntime.ValidateStart());
+    eventRuntime.StartValidated();
     assert(stateRuntime.Start() == S::StateRuntimeStatus::Success);
     assert(commandRuntime.Start() == C::CommandRuntimeStatus::Success);
     assert(worker.Start() == T::ThreadStatus::Success);
