@@ -30,6 +30,61 @@ def read(root: Path, repository: str, relative: str, errors: list[str]) -> str:
         return ""
 
 
+def strip_cpp_comments(text: str) -> str:
+    """Remove C/C++ comments while preserving code, directives and literals."""
+    output: list[str] = []
+    index = 0
+    state = "code"
+    quote = ""
+    while index < len(text):
+        current = text[index]
+        following = text[index + 1] if index + 1 < len(text) else ""
+        if state == "code":
+            if current == "/" and following == "/":
+                state = "line-comment"
+                output.extend((" ", " "))
+                index += 2
+                continue
+            if current == "/" and following == "*":
+                state = "block-comment"
+                output.extend((" ", " "))
+                index += 2
+                continue
+            if current in {'"', "'"}:
+                state = "literal"
+                quote = current
+            output.append(current)
+            index += 1
+            continue
+        if state == "line-comment":
+            if current == "\n":
+                state = "code"
+                output.append("\n")
+            else:
+                output.append(" ")
+            index += 1
+            continue
+        if state == "block-comment":
+            if current == "*" and following == "/":
+                state = "code"
+                output.extend((" ", " "))
+                index += 2
+                continue
+            output.append("\n" if current == "\n" else " ")
+            index += 1
+            continue
+        output.append(current)
+        if current == "\\" and index + 1 < len(text):
+            output.append(text[index + 1])
+            index += 2
+            continue
+        if current == quote:
+            state = "code"
+            quote = ""
+        index += 1
+    return "".join(output)
+
+
 def require(text: str, repository: str, relative: str, tokens: tuple[str, ...], errors: list[str]) -> None:
     for token in tokens:
         if token not in text:
@@ -37,8 +92,9 @@ def require(text: str, repository: str, relative: str, tokens: tuple[str, ...], 
 
 
 def forbid(text: str, repository: str, relative: str, tokens: tuple[str, ...], errors: list[str]) -> None:
+    executable = strip_cpp_comments(text)
     for token in tokens:
-        if token in text:
+        if token in executable:
             fail(errors, f"ESPressio-{repository}/{relative}: forbidden predecessor/ownership token {token!r} is present")
 
 
