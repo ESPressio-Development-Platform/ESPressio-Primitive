@@ -8,7 +8,9 @@ Historical CHANGELOGs and tranche/history reports are not live API instructions.
 For Markdown we validate fenced code and positive instructional inline API spelling.
 Inline identifiers inside explicit removal/negative architecture prose are allowed: a
 README should be able to say that `PrecisionThread` no longer exists without that
-statement being mistaken for a usage example.
+statement being mistaken for a usage example.  A heading which explicitly declares a
+section to describe removed/predecessor/legacy architecture extends that documentary
+context to inline code in the section; fenced code remains strict everywhere.
 """
 
 from __future__ import annotations
@@ -52,9 +54,13 @@ HISTORICAL_NAME_PARTS = (
 )
 
 NEGATIVE_ARCHITECTURE_PHRASES = (
-    "no ", "no longer", "does not", "doesn't", "do not", "don't", "not retained",
-    "not exist", "removed", "removal", "predecessor", "legacy", "obsolete", "replaced",
-    "without ", "rather than", "instead of",
+    "no ", "neither ", "absent", "no longer", "does not", "doesn't", "do not", "don't",
+    "not retained", "not exist", "removed", "removal", "predecessor", "legacy", "obsolete",
+    "replaced", "without ", "rather than", "instead of",
+)
+
+NEGATIVE_SECTION_PHRASES = (
+    "removed", "removal", "predecessor", "legacy", "obsolete", "superseded",
 )
 
 
@@ -125,21 +131,50 @@ def live_markdown(path: Path, repo: Path) -> bool:
 
 def markdown_instructional_code(text: str) -> str:
     pieces: list[str] = []
-    # Fenced blocks are always copyable/instructional surfaces.
+
+    # Fenced blocks are always copyable/instructional surfaces, even when they occur
+    # below a heading describing legacy/removed architecture.
     for match in re.finditer(r"```[^\n]*\n(.*?)```", text, flags=re.DOTALL):
         pieces.append(match.group(1))
 
-    # Inline API spelling is instructional unless its containing line explicitly says
-    # that the API is absent/removed/replaced.  Preserve blank placeholders so line
-    # numbers remain reasonably diagnostic.
+    # Inline API spelling is instructional unless its line or the containing Markdown
+    # section explicitly says the spelling is absent/removed/replaced.  Track heading
+    # levels so a new sibling/parent section terminates documentary-negative context.
+    negative_section_level: int | None = None
+    in_fence = False
     for line in text.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            pieces.append("")
+            continue
+        if in_fence:
+            pieces.append("")
+            continue
+
+        heading = re.match(r"^(#{1,6})\s+(.+)$", stripped)
+        if heading:
+            level = len(heading.group(1))
+            title = heading.group(2).lower()
+            if negative_section_level is not None and level <= negative_section_level:
+                negative_section_level = None
+            if any(phrase in title for phrase in NEGATIVE_SECTION_PHRASES):
+                negative_section_level = level
+            pieces.append("")
+            continue
+
         lower = line.lower()
-        negative = any(phrase in lower for phrase in NEGATIVE_ARCHITECTURE_PHRASES)
+        negative = (
+            negative_section_level is not None
+            or any(phrase in lower for phrase in NEGATIVE_ARCHITECTURE_PHRASES)
+        )
         if negative:
             pieces.append("")
             continue
+
         inline = [m.group(1) for m in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", line)]
         pieces.append(" ".join(inline))
+
     return "\n".join(pieces)
 
 
