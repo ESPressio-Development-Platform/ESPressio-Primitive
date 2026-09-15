@@ -167,6 +167,10 @@ jobs:
             "/tmp/${test}"
           done
 
+      - name: V11-10 execute shutdown, restart, generation and stale-handle contracts
+        shell: bash
+        run: bash validator/tools/run_v11_lifecycle_validation.sh "$GITHUB_WORKSPACE/repos"
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
