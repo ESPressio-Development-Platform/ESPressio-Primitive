@@ -2,7 +2,7 @@
 
 Date: 2026-09-15
 Latest user time reference: **15:55 Europe/Prague**
-Continuation state: **Structural Tranches 2–10 CLOSED/GREEN; Tranche 11 ACTIVE; V11-01 through V11-08 CLOSED/GREEN; V11-09 ACTIVE.**
+Continuation state: **Structural Tranches 2–10 CLOSED/GREEN; Tranche 11 ACTIVE; V11-01 through V11-10 CLOSED/GREEN; V11-11 ACTIVE.**
 
 This is the canonical living continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for architecture, governance, dependency order, locked contracts, tranche gates and historical decisions. Live `primitives_redesign` branch tips are implementation truth and MUST be re-queried before every mutation.
 
@@ -49,7 +49,7 @@ Before changing a repository:
 
 # Structural Tranche 10 — CLOSED/GREEN
 
-All D10-01 through D10-20 are closed. Late closure evidence includes:
+All D10-01 through D10-20 are closed. Late closure evidence:
 
 - Serial final Event tooling examples: `2275bae54b8be8457a2bb032b97a3781423a8ff9`; exact-tip Host/ownership/diagnostics/ESP32 monitor/Command Console checks GREEN.
 - Primitive full real Thread composition proof: `tests/platform_thread_capability_integration.cpp`, exercising Event reception + Precision + Command response + State observation on one `ThreadWith`/one root task.
@@ -91,70 +91,83 @@ Cross-graph validators are live and green for:
 - forbidden dependency and redesign-branch guards across 26 repositories / 177 build/package/workflow surfaces;
 - semantic classification of the entire current test/workflow corpus across all 26 semantic domains.
 
-Important provider/consumer remediation retained from these gates:
+Important remediation retained from these gates:
 
 - Radio `29c62486482521a13d0c28378ea380fc1a6871c3`: Radio-owned local monotonic coordinate.
-- RadioAdapters `f4cf090a49af1cc6cf5e6236039661f9e90e7710` and `4ebeeafb960b0eb93f55cba41a34f4b02ebe3463`: removed direct System clock/synchronization coupling while preserving final exact-M1/4-byte-envelope semantics.
-- Threads `7d40e5260bf4e2420c90bb3aef448ac4dd45104b`: locked Observable edge consistently restored across manifests/docs without version change.
-- Mesh `fdea7a04749f7138485a310ecfdc770298a9d0b2`: stale predecessor-era runtime worker contract test migrated to final bare `Threads::Thread` + direct work-signal/fixed-thunk architecture.
+- RadioAdapters `f4cf090a49af1cc6cf5e6236039661f9e90e7710` and `4ebeeafb960b0eb93f55cba41a34f4b02ebe3463`: removed direct System clock/synchronization coupling while preserving exact-M1/4-byte-envelope semantics.
+- Threads `7d40e5260bf4e2420c90bb3aef448ac4dd45104b`: locked Observable edge consistently restored.
+- Mesh `fdea7a04749f7138485a310ecfdc770298a9d0b2`: predecessor runtime worker contract migrated to final bare `Threads::Thread` + direct work-signal/fixed-thunk architecture.
 
 ## V11-07 — CLOSED/GREEN
 
-V11-07 used restricted independent public-header compilation plus ASAN+UBSAN real capability composition. Compiler-driven remediation advanced Mesh to final Radio/M1 contracts:
+Restricted public-header compilation and ASAN+UBSAN real capability composition drove the final Mesh/Task migrations:
 
-- Mesh `94b7222e5cedf9a480ba2eccdf3747a3355db394`: forwarding/terminal correlation/physical-peer lifecycle migrated to final `RadioRuntime`.
-- Mesh `05b644dddf005a6da0cd90203503043c9ecce4af`: liveness migrated to final Radio runtime and six neutral relay service classes.
-- Mesh `dd917577635f098f133b266c7e1ded67fc7eac76`: managed Mesh→Radio submission regression aligned to `{Status, TransferId}`.
-- Mesh `11381a110209e43e3332722468cf2fa857234690`: neighbour discovery migrated from deleted transport view to `RadioInboundTransferHandle` while retaining physical-peer provenance separation.
-- Mesh `f7b7694a530e84466c53ab1accf3c9f40510d5e3`: protected destination delivery migrated to final `PrimitiveAdmissionDisposition`; only `Accepted`/`AlreadyAccepted` establishes destination admission.
-- Mesh `2ed4fbb6089831a393c5825afc8fc066813f6f96`: integrity repair restored complete M2 inline implementation after an accidental contents replacement shortened the file.
-- Mesh `4b6662972ab2dd42a6873690d5e80f37129c7a8a`: M2 regression fake aligned to final scheduler result semantics; exact-tip Mesh workflow GREEN.
-
-V11-07 then exposed a genuine C++17 portability defect in optional member-function bindings in ESPressio-Task. The architecture was preserved: callbacks remain fixed non-owning thunks; no `std::function`, heap state or alternate task mechanism was introduced.
-
-- Task `6808f84503bb41935e5f11fd3f9dd22985eff8dd`: restored complete documented `IdleWorkerTask` header and changed optional member-pointer binding from rejected `if constexpr` comparison to initialization-time `if`.
-- Task `c6bd4df69c074c1fcbce7b2d006771aad18c81fc`: same portable correction for `TaskExecutor` discard binding.
-- Task exact-tip run `34976816646`: host contracts GREEN and ESP32 PlatformIO build GREEN.
-- Primitive platform run `34969584258`, successful rerun job `104407017114`: V11-02..V11-06 GREEN, 19 restricted headers GREEN, ASAN+UBSAN Event+Precision+CommandResponse+StateObserver composition GREEN, dynamic tooling GREEN, normal real Thread composition GREEN.
-
-Therefore V11-07 is CLOSED/GREEN.
+- Mesh `94b7222e5cedf9a480ba2eccdf3747a3355db394`: final `RadioRuntime` forwarding/terminal correlation/physical-peer lifecycle.
+- Mesh `05b644dddf005a6da0cd90203503043c9ecce4af`: liveness on final Radio runtime and six neutral relay service classes.
+- Mesh `dd917577635f098f133b266c7e1ded67fc7eac76`: managed Mesh→Radio submission result aligned to `{Status, TransferId}`.
+- Mesh `11381a110209e43e3332722468cf2fa857234690`: neighbour discovery moved to `RadioInboundTransferHandle` while retaining physical-peer/semantic-source separation.
+- Mesh `f7b7694a530e84466c53ab1accf3c9f40510d5e3`: protected destination delivery uses final `PrimitiveAdmissionDisposition`; only `Accepted`/`AlreadyAccepted` establishes admission.
+- Mesh `2ed4fbb6089831a393c5825afc8fc066813f6f96`: integrity repair restored complete M2 implementation after an accidental shortened replacement.
+- Mesh `4b6662972ab2dd42a6873690d5e80f37129c7a8a`: final M2 fake/scheduler-result semantics; exact-tip Mesh workflow GREEN.
+- Task `6808f84503bb41935e5f11fd3f9dd22985eff8dd` and `c6bd4df69c074c1fcbce7b2d006771aad18c81fc`: C++17-portable optional member-pointer binding while retaining fixed non-owning thunks/no heap/no alternate task mechanism.
+- Task run `34976816646`: host contracts + ESP32 PlatformIO GREEN.
+- Primitive Platform rerun `34969584258`, job `104407017114`: restricted headers, sanitizer four-capability composition, dynamic tooling and normal Thread composition GREEN.
 
 ## V11-08 — CLOSED/GREEN
 
-A cross-family deterministic malformed/property harness now validates final Event/Command/State wire decoders under ASAN+UBSAN:
+`tests/platform_wire_malformed_property.cpp` provides deterministic ASAN+UBSAN Event/Command/State malformed/property coverage: all shorter lengths, relevant family/protocol/kind/reliability/version/length corruptions, deterministic byte mutations and bounded valid round-trips for Event, Command request/response and all four State V1 shapes.
 
-- `tests/platform_wire_malformed_property.cpp`
-- every shorter input length is exercised for Event, Command request/response, State publication, State common control, State snapshot control and State acceptance control;
-- family/protocol/message-kind/reliability/version/declared-length corruptions are rejected according to each public decoder contract;
-- deterministic byte mutations are exercised across complete valid seeds;
-- bounded valid payload-length/reliability/version combinations round-trip for the property cases;
-- the harness owns no codec semantics and only consumes the final family-owned wire APIs from the checked-out live graph.
+- `7be225bc965541c6addca28439089d49213488f6`: restored complete harness after accidental connector-created empty-file commit `537fc1c52f9ce6af8631dc7421e21e8b5fcee047`.
+- `46a750f57db72bdf805e3618ffb9ef228d14022b`: attached V11-08 sanitizer gate.
+- `243c7bea3917675ab07a2c1d2e14915e090de76b`: corrected one harness over-specification around State wrapper diagnostic-status propagation; production codecs were not changed.
+- Platform run `34978625033`, job `104412783040`: V11-08 and all preceding/following platform gates GREEN.
 
-Primitive sequence:
+Do not rewrite history solely to remove the harmless intermediate `537fc1c...` commit.
 
-- `7be225bc965541c6addca28439089d49213488f6`: restored the complete V11-08 harness after an accidental connector-created empty-file commit.
-- `46a750f57db72bdf805e3618ffb9ef228d14022b`: attached the ASAN+UBSAN V11-08 gate to `platform-boundaries.yml`.
-- first V11-08 run `34978362035` correctly exposed a harness over-specification: State common/snapshot/acceptance wrappers reject unsupported protocol but do not promise preservation of `UnsupportedProtocol` from their internal prefix decoder. This was not a production defect.
-- `243c7bea3917675ab07a2c1d2e14915e090de76b`: harness narrowed to the locked property—safe rejection—while retaining exact status assertions where the public family decoder contract exposes them.
-- exact-tip Platform Redesign Boundaries run `34978625033`, job `104412783040`: **SUCCESS**. V11-02..V11-07 all GREEN, V11-08 ASAN+UBSAN malformed/property matrix GREEN, final dynamic tooling GREEN and real Thread composition GREEN.
+## V11-09 — CLOSED/GREEN
 
-Integrity note: connector commit `537fc1c52f9ce6af8631dc7421e21e8b5fcee047` exists in branch history because a contents-API operation unexpectedly produced an empty-file `noop` commit. It was detected immediately and repaired without force-pushing; the live file at/after `7be225bc...` is the complete intended harness. Do not rewrite history solely to remove this harmless intermediate commit.
+V11-09 executes real behavioral capacity/no-hidden-heap suites rather than a lexical surrogate. Primitive commit `b72d34a972d93c2d1e9fdace477983ba8985877f` added the cross-graph gate covering:
 
-Therefore V11-08 is CLOSED/GREEN.
+- Event pool/inbox/blocking admission/remote receipt-contention capacities;
+- Command runtime/response/critical-execution/no-heap paths;
+- Adapters byte arena, capacity, rollback, fit, no-heap/runtime-no-heap, resource and stress contracts;
+- Task worker/executor/configuration/rejected contracts;
+- Threads composition/common-wake tests, including heap denied after initialization;
+- Radio capacity/resource-accounting/reassembly/quarantine-validation/scheduler contracts.
 
-## V11-09 — ACTIVE
+Exact Platform run `34979178551`, job `104414679441`: **SUCCESS**. V11-09, dynamic tooling and final Thread composition all GREEN. Therefore finite refusal/rollback/protected capacity and no hidden canonical hot-path heap escape are re-proven against one live graph.
 
-Locked target: prove finite resource accounting and exhaustion behavior across the final graph, including Event live-instance/inbox capacity, Command private/protected request/response capacity, Adapter independent byte/record pool exhaustion and atomic rollback, Thread/Task bounded storage, Radio/Q1 protected capacity/starvation isolation, and **no hidden heap fallback or runtime capacity growth** in canonical hot paths.
+## V11-10 — CLOSED/GREEN
 
-Do not reduce V11-09 to a lexical search for `new`/`malloc`: repository-local tests must remain the behavioral evidence for independent exhaustion/refusal/rollback/protected-capacity semantics; the cross-graph gate should additionally prove no canonical hidden heap escape and that required evidence suites remain present/executable.
+Primitive commit `45346226b3af35f66453591f61cabfc0b1e460c3` added `tools/run_v11_lifecycle_validation.sh`; `150260e4cffce3b262adf7e9c9c27911b2982e48` attached it to the platform workflow.
+
+The gate exercises:
+
+- Task generation-safe handles, exact Ready-generation cancellation, Ready-drop on Shutdown, Executing join, self-join typing and generation monotonicity across reinitialization;
+- Threads lifecycle/common-Wake termination races/composition rollback/quiescence;
+- Event runtime freeze, initialization rollback and pause/quiesce teardown;
+- Command runtime/response-capability cancellation/quiescence;
+- State shutdown admission closure, in-flight mutation/transport drain, session deactivation and retained snapshot readability without changing the System incarnation;
+- Adapters shutdown/deferred-retry/binding/runtime generation and quiescence contracts;
+- Radio domain/runtime cooperative stop and resource reclamation;
+- neutral Socket transport restart generation, stale receipt/completion rejection and quiesced-admission refusal.
+
+Exact Platform run `34979811958`, job `104416871448`: **SUCCESS**. Step-level evidence shows V11-02 through V11-10, final dynamic tooling and real Thread composition all GREEN. Therefore V11-10 is CLOSED/GREEN.
+
+## V11-11 — ACTIVE
+
+Locked target: provider physical completion/readiness/cost/timestamp correctness across the final Radio/provider graph. Validate final Radio provider contract plus actual ESP32/NRF24 physical-provider surfaces. Required semantics include bounded provider ingress/service, explicit readiness/Busy behavior and wake/progress, physical completion ownership, provider cost/airtime model, RX/TX timestamp/evidence semantics, no family knowledge at provider/Radio layer, and no provider-local semantic retry ownership.
+
+Do not infer provider correctness only from Radio core tests: inspect and execute the current provider-specific workflows/tests/examples on the exact live `primitives_redesign` tips. Any failure must be classified as harness/infrastructure versus genuine provider-contract defect before mutation.
 
 ## Current live frontier / immediate continuation
 
 Continue without a permission pause:
 
-1. re-query exact live tips before every mutation;
-2. implement V11-09 as cross-graph capacity/no-hidden-heap validation backed by current family/Adapter/Radio/Threads/Task behavioral suites;
-3. remediate only real production/resource-contract defects exposed by V11-09; do not add compatibility shims or relax locked capacities;
-4. after V11-09 is GREEN, continue immediately through V11-10..V11-20 in authoritative order, updating this handoff after substantive frontier changes;
-5. keep ESPressio-ESP-Now and deprecated ESP-NOW-era Labs out of the active redesign completion path unless separately re-authorized/rebaselined;
-6. **do not begin Tranche 12/release preparation without separate authorization.**
+1. re-query Radio, ESP32 and NRF24 exact `primitives_redesign` tips and manifests before mutation;
+2. inspect provider-specific tests/workflows for physical completion/readiness/cost/timestamp coverage;
+3. add a V11-11 cross-graph provider validation gate only for missing final evidence, reusing provider-owned tests where possible;
+4. remediate genuine provider defects provider-first, then rerun the platform graph;
+5. once V11-11 is GREEN, continue immediately through V11-12..V11-20 in authoritative order and keep this handoff current;
+6. keep deprecated ESP-NOW-era paths outside the active redesign completion path unless separately re-authorized/rebaselined;
+7. **do not begin Tranche 12/release preparation without separate authorization.**
