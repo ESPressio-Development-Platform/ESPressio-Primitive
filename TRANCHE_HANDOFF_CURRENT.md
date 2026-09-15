@@ -1,8 +1,8 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-15
-Latest user time reference: **11:12 Europe/Prague**
-Continuation state: **structural Tranches 2–10 CLOSED; Tranche 11 ACTIVE at V11-03 final rerun**
+Latest user time reference: **13:32 Europe/Prague**
+Continuation state: **Structural Tranches 2–10 CLOSED/GREEN; Tranche 11 ACTIVE with V11-01 through V11-06 CLOSED/GREEN; V11-07 is next.**
 
 This is the living continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for architecture, governance, dependency order, locked contracts, tranche gates and historical decisions. Live `primitives_redesign` branch tips are implementation truth and MUST be re-queried before every mutation.
 
@@ -10,7 +10,7 @@ This is the living continuation card. `ESPressio_Primitive_Platform_Redesign_Arc
 
 Implementation remains authorized continuously through structural Tranche 11; no permission pause is required between validation items. **Tranche 12/release preparation is NOT authorized.** Do not change versions, finalize release CHANGELOGs, reintegrate to `main`, tag/release, publish Wiki release material, force-push or add backward-compatibility shims.
 
-Per current project scope, deprecated functionality outside the active Mesh-based architecture is excluded from implementation and validation work. In particular, ESPressio-ESP-Now is outside the active redesign validation scope and MUST NOT be used as a completion blocker or mutated as part of Tranche 11.
+Deprecated ESP-NOW-era functionality outside the active Mesh-based redesign remains excluded from the active completion path. ESPressio-ESP-Now hosted automation has repeatedly failed before runner execution (`steps=[]`/no usable runner evidence) and must not be mutated merely to turn infrastructure failure green.
 
 ## Mandatory continuation protocol
 
@@ -20,104 +20,49 @@ Before changing a repository:
 2. inspect manifest/dependency boundaries before implementation source;
 3. consume closed provider contracts rather than restoring predecessor APIs;
 4. classify tests/examples semantically before migration;
-5. keep mutations coherent and validate the exact resulting tip;
+5. keep mutations small/coherent and validate the exact resulting tip;
 6. update this handoff after substantive progress.
 
 ## Locked non-regression rules
 
 - Primitive TypeDirectory/P3 is immutable discovery/schema/constructibility metadata after freeze; it is not authorization or a semantic registry.
-- Dynamic Web/Lua/Serial tooling must independently authorize operations, bound input before parse/construction and enter the final family APIs.
+- Dynamic Web/Lua/Serial tooling must independently authorize operations, bound input before parse/construction and enter final family APIs.
 - Commands use final typed descriptor/schema/factory/admission semantics; no Event fabrication or Command registry revival.
 - Generic State tooling is read/inspect only; owner-authoritative State remains writable only through the bound owner path.
 - Event delivery/admission policy remains Event-owned; tools cannot recreate Event transport/runtime ownership.
 - A2 owns logical Primitive-family pursuit/retry after synchronous ownership handoff.
-- Primitive family runtimes own family semantics and exact M1 admission meaning. Only `Accepted` / `AlreadyAccepted` establishes destination Primitive admission.
+- Primitive family runtimes own family semantics and exact M1 admission. Only `Accepted`/`AlreadyAccepted` establishes destination Primitive admission.
 - Radio/R3 owns physical fragmentation/reassembly/arbitration and remains Primitive-family-neutral.
 - RadioAdapters is the only direct-Radio layer understanding both Radio and Primitive families; generic Adapters remains Radio-neutral.
-- Mesh remains family-neutral. Immediate physical peer and validated semantic original source remain distinct provenance facts.
-- No family-local retry worker, retry queue, fragmentation engine or duplicate family runtime.
+- Direct-Radio Primitive envelope remains exactly 4 bytes: 2-byte LE family + 2-byte LE protocol.
+- Mesh remains family-neutral. Immediate physical peer and validated semantic OriginalSource remain distinct provenance facts.
+- No family-local retry worker/queue, fragmentation engine or duplicate family runtime.
 - Registration/topology freezes before Running; bounded resources and nonblocking ingress remain mandatory.
-- Threads uses one root Thread task/stack/common Wake. `ThreadWith<TCapabilities...>` is the sole generic non-empty capability composition host; bare `Thread` is the zero-capability spelling.
-- Reusable specialized Thread flavours including `PrecisionThread` remain removed. Precision is a resident capability over the root Thread and owns no private task/scheduler/wake.
-- Timing owns clock discipline and final reliability/evidence vocabulary.
-- Serial remains downstream tooling/diagnostics and cannot force dependencies upstream.
-- Units remains dependency-neutral.
+- Threads uses one root task/stack/common Wake. `ThreadWith<TCapabilities...>` is the sole generic non-empty capability host; bare `Thread` is the zero-capability spelling.
+- Reusable specialized Thread flavours including `PrecisionThread` remain removed. Precision is a resident capability and owns no private task/scheduler/wake.
+- Timing owns clock discipline and final reliability/evidence vocabulary (`TimeReliability`).
+- System remains free of Persistence. Persistence depends on System/Serializable/Security.
+- Threads does not depend upward on Event/Command/State. Timing does not depend on Threads. Command does not depend on Event. Radio has no Primitive-family knowledge. Mesh has no direct Event/Command/State edge.
+- State remote admission cross-checks encoded owner/requester against adapter-validated semantic OriginalSource.
+- Unauthenticated Radio service-class claims cannot grant protected capacity; quarantine/trusted promotion remains required.
 - No structural-tranche version changes.
 
 # Structural Tranche 10 — CLOSED/GREEN
 
-All D10-01 through D10-20 are closed.
+All D10-01 through D10-20 are closed. Important late closure evidence:
 
-## D10-01…18
-
-Previously closed provider/family/tooling work remains as recorded in the authoritative architecture handoff and tranche evidence. Important late-Tranche-10 closure tips include:
-
-- ESPressio-ESP32 D10-17 provider cleanup: `1b19c94a85aaac6fdf71935a78fbd7a0a4d4333f`, provider and non-Radio provider smoke jobs GREEN.
-- ESPressio-Units D10-18 dependency-neutral proof: `738da6833955ddd0d491cbfac8942ec3ed3bc4f0`, host and optional Serializable integration GREEN.
-
-## D10-19 — semantic validation/eradication closure
-
-D10-19 audited the Section 16 validation matrix rather than duplicating already-closed tests. Existing evidence was confirmed for Event lifetime/admission/contention, Command durable/reboot/idempotency paths, State provenance/convergence/races, Threads common-wake/deadline/lifecycle behavior, Radio protected capacity/quarantine/fairness/reassembly, Mesh broadcast Option-B local retry, Timing evidence qualification and bounded/nonblocking ingress.
-
-A genuine missing proof was added: real simultaneous composition of **Event reception + Precision + Command response + State observation on one root `ThreadWith`**.
-
-Primitive integration evidence:
-
-- `tests/platform_thread_capability_integration.cpp`
-- one real Event per-Type runtime, State runtime, Command runtime/response router and one `ThreadWith<EventCapability, Precision<4>, ResponseCapability<1>, ObserverCapability<ObservedState>>`
-- asserts all four capabilities add exactly one root Thread task and exercises Event, State, Command response and application cadence callbacks.
-
-The platform structural validator was hardened to scan the current public redesign graph, include Observable, and remain comment-aware for removed-symbol eradication.
-
-D10-19 close evidence at Primitive `243014060ce19ad783d59bc742110f8af12894a5`:
-
-- CI run `34946740606`: SUCCESS
-- Platform Redesign Boundaries run `34946740550`: SUCCESS, including structural validation and real four-capability composition.
-
-## D10-20 — docs/schema examples/cross-tool integration closure
-
-Canonical active documentation was aligned to the final redesign rather than predecessor branches/APIs:
-
-- **Web** `585956879ad212dca6a4cf428d3dc16b255f0cdc`
-  - frozen TypeDirectory discovery;
-  - P3 schema/constructibility;
-  - typed Command admission;
-  - final Event APIs;
-  - generic State read-only;
-  - discovery is not authorization;
-  - bounded dynamic input;
-  - Sockets/A2 and Timing evidence boundaries.
-- **Lua** `1cac393ec64c38b12903d083e973bebcb8c4f3de`
-  - README and `docs/Integration.md` target `primitives_redesign`;
-  - final discovery/Command/Event/State adapter ownership and security rules documented;
-  - mandatory System dependency unchanged; version unchanged.
-- **Serial** `efbc9063089937832efc7b63774affbeef301b23`
-  - README matches frozen TypeDirectory + application authorization + bounded P3 construction + final Command/Event APIs + read-only State diagnostics;
-  - required System/Logging dependency surface unchanged; version unchanged.
-- **WiFi** `937a27f977bd77003f2b9a3fd3896ac61ffafe4e`
-  - README documents the actual `ThreadWith<Precision<8>>` worker/common-wake architecture and redesign branches;
-  - manifest/version unchanged.
-- **ESP32** `1b19c94a85aaac6fdf71935a78fbd7a0a4d4333f`
-  - live README/provider boundary matched the final architecture; no documentation churn was introduced.
-
-Primitive gained `tools/validate_dynamic_tooling.py`, an exact-graph cross-tool guard over the active Web/Lua/Serial/WiFi surfaces. It verifies frozen TypeDirectory discovery, independent application authorization, schema-bounded Command/Event input and final family dispatch/admission, read-only generic State tooling, final WiFi Thread composition, focused workflows and coordinated branch guidance.
-
-**Final Tranche-10 Primitive tip:** `670ad84b37d5cd3cd4d2c4f0ec522b80604495a5`
-
-Exact close evidence:
-
-- Primitive CI run `34947850953`: **SUCCESS**
-- Platform Redesign Boundaries run `34947850970`: **SUCCESS**
-
-Therefore **Structural Tranche 10 is CLOSED/GREEN**.
+- Serial final Event tooling examples: `2275bae54b8be8457a2bb032b97a3781423a8ff9`; exact-tip Host/ownership/diagnostics/ESP32 monitor/Command Console checks GREEN.
+- Primitive full real Thread composition proof: `tests/platform_thread_capability_integration.cpp`, exercising Event reception + Precision + Command response + State observation on one `ThreadWith`/one root task.
+- D10-19 Primitive close: `243014060ce19ad783d59bc742110f8af12894a5`; CI `34946740606` SUCCESS; Platform Redesign Boundaries `34946740550` SUCCESS.
+- D10-20 final Primitive close tip before Tranche 11: `670ad84b37d5cd3cd4d2c4f0ec522b80604495a5`; CI `34947850953` SUCCESS; Platform Redesign Boundaries `34947850970` SUCCESS.
 
 # Structural Tranche 11 — ACTIVE
 
-Authoritative validation order:
+Authoritative order:
 
 1. V11-01 exact-tip freeze
 2. V11-02 branch-specific removed-symbol/source/include scan
-3. V11-03 examples/demos/Labs/wiki/README/generated-CI-fixture scan as separate surfaces
+3. V11-03 examples/demos/Labs/wiki/README/generated-CI-fixture scan
 4. V11-04 final dependency DAG
 5. V11-05 forbidden dependency/branch guards
 6. V11-06 semantic classification of every existing test
@@ -138,57 +83,76 @@ Authoritative validation order:
 
 ## V11-01 — CLOSED
 
-The Tranche-11 entry graph was frozen before eradication mutation began. The frozen baseline is the post-D10-20 `primitives_redesign` graph; subsequent V11 commits are validation/remediation commits and do not redefine the architectural baseline. Live tips remain authoritative before every mutation.
+Post-D10-20 live graph frozen as the Tranche-11 architectural baseline. Later V11 commits are validation/remediation and do not redefine locked architecture.
 
 ## V11-02 — CLOSED/GREEN
 
-Primitive added `tools/validate_v11_source_eradication.py` and wired it into `.github/workflows/platform-boundaries.yml` as a dedicated production/public source pass, separate from V11-03 examples/docs surfaces.
+`tools/validate_v11_source_eradication.py` scans active production/public source across the 26 redesign repositories and rejects predecessor APIs. Current platform attempt confirms V11-02 GREEN across **711 production/public source files**.
 
-The guard scans `src/` and `include/` across all 26 active redesign repositories, strips C/C++ comments and rejects removed predecessor identifiers including the final Event manager/dispatcher/listener hierarchy, specialized Thread/Precision worker hierarchy, `CommandRegistry`, old State/Timing names and `RadioWorker`.
+## V11-03 — CLOSED/GREEN
 
-Exact evidence:
+`tools/validate_v11_live_surfaces.py` separately checks active examples/demos, live Markdown/API material and workflows. Earlier remediation included coordinated branch guidance, final `Timing::TimeReliability` vocabulary and Lua Serial console removal of obsolete `CommandRegistry` usage. Current platform attempt confirms V11-03 GREEN across **98 example/demo sources, 53 live Markdown/API files and 68 workflows**.
 
-- Platform Redesign Boundaries run `34948846099`
-- job `104314675007`
-- **SUCCESS** for V11-02
-- 26 repositories / 710 production-public source files scanned
+## V11-04 — CLOSED/GREEN
 
-No predecessor symbol remained in the active production/public source graph.
+Primitive `a7e2841595f5db7d858213b54dd19b6ede141637` hardened exact-DAG validation so manifest-less adapter repositories are validated from direct public includes rather than invented package metadata.
 
-## V11-03 — ACTIVE, remediation complete; fresh cross-graph rerun triggered by this handoff commit
+A live DAG failure correctly exposed residual `RadioAdapters -> System` coupling. It was fixed provider-first without changing family/M1 semantics:
 
-Primitive added `tools/validate_v11_live_surfaces.py` and a separate workflow step for examples/demos, live README/docs/wiki/API material and generated CI fixtures. Historical CHANGELOG/tranche/history documents are intentionally excluded. Markdown removal/explanation sections may name predecessor APIs as documentary evidence, but fenced/copyable code remains strict.
+- **Radio** `29c62486482521a13d0c28378ea380fc1a6871c3`
+  - added/exported `RadioMonotonicNowNanoseconds()` as the Radio-owned canonical local monotonic coordinate;
+  - preserves duration/deadline semantics only; it is not synchronized System Time or timestamp evidence;
+  - exact-tip Radio redesign contract run `34964716772`: SUCCESS.
+- **RadioAdapters** `f4cf090a49af1cc6cf5e6236039661f9e90e7710`
+  - lower transport removed direct System synchronization/clock use; switched local synchronization to `std::mutex` and monotonic time to the Radio-owned boundary.
+- **RadioAdapters** `4ebeeafb960b0eb93f55cba41a34f4b02ebe3463`
+  - exact-M1 controller removed the final direct `ESPressio_Synchronization.hpp` / `ESPressio_SystemPlatformClock.hpp` coupling in the same way;
+  - constructor, M1 correlation, generation, finite capacity, nonblocking hot paths, exact admission evidence and 4-byte envelope are unchanged;
+  - all eight exact-tip RadioAdapters workflows completed GREEN.
 
-The first V11-03 run correctly exposed a finite remediation set rather than being weakened:
+Current platform evidence: V11-04 passes **16 locked repositories / 57 exact direct ESPressio edges; 14 manifest-backed, 2 public-include-backed**.
 
-- stale coordinated `#main` guidance in Persistence, Security, Units and Observable;
-- Logging README using removed `ClockSynchronizationState` vocabulary;
-- two executable SerialLuaConsole demo copies using removed `CommandRegistry`;
-- State/ESP32 explanatory removed-architecture text, which was classified as documentation evidence and the validator made section-aware rather than deleting useful statements.
+## V11-05 — CLOSED/GREEN
 
-Remediation completed:
+Current platform evidence: forbidden dependency/branch validation passes across **26 repositories and 177 build/package/workflow surfaces**.
 
-- **Security** README branch guidance: `9a09983db033df9c4ab7d3af41c7b1725f062a6a`
-- **Observable** README branch guidance: `476fd1dd133d11949ee07ffd16b194451d891d5a`
-- **Units** README optional Serializable/core branch guidance: `987b500309b3345368a713d467d789f627590b7a`
-- **Logging** README final `Timing::TimeReliability` vocabulary: `b1f75fb790e5e96969eb04172d2aab448f32132e`
-- **Persistence** README coordinated branches and locked `{System, Serializable, Security}` dependency description: `2f132b048d29bb220ed8447b2116abf44b4f9c5a`
-- **Lua** SerialLuaConsole removed the obsolete mutable Command registry from both Arduino and PlatformIO source variants. `lua run` is now explicitly a bounded application-owned local operator grammar, not a Command primitive; PlatformIO dependencies reduce to the actual Lua/System requirements; paired-source validation covers the console files; CI compiles both NativeBindings and SerialLuaConsole on ESP32. Exact Lua tip: `2fd32036cabfc91e80393cda1ce7b4fb255d792e`; Lua bindings run `34950638082`: **SUCCESS**.
-- **Primitive** Markdown removal-section classification: `358a4a873c1f7deeb7d4e83712ab9d884603c11e` before this handoff update.
+Threads dependency remediation completed before this pass:
 
-Downstream non-authoritative repository classification:
+- **Threads** `7d40e5260bf4e2420c90bb3aef448ac4dd45104b`
+- locked Observable edge consistently restored in `library.json`, `library.properties`, ESP-IDF CMake, legacy component metadata, README and dependency chart; no version change.
 
-- **Demos** currently contains scaffolding only; no active demo/API surface exists to migrate.
-- **Labs Base/FullStack-Lab** is an ESP-NOW-era deprecated fixture and is outside the active Mesh redesign scope.
-- **Labs Mesh lab** still references pre-redesign `structural_realignment*` branches. Because Labs has no authorized `primitives_redesign` baseline, this is recorded as a downstream validation finding, not silently mutated. It must not be used as V11-15 build evidence until an authorized redesign validation baseline exists.
+## V11-06 — CLOSED/GREEN
 
-The present handoff commit intentionally triggers a fresh `Platform Redesign Boundaries` run over the current 26-repository redesign graph. Inspect that run next; if V11-03 is green, close V11-03 and proceed immediately to V11-04.
+The semantic test classifier exposed one real stale contract:
 
-## Immediate continuation
+- `ESPressio-Mesh/tests/mesh_runtime_worker_contract_test.cpp` still asserted the removed `PrecisionThread` hierarchy and obsolete std::function/configuration contracts.
 
-1. Inspect the Platform Redesign Boundaries run triggered by this handoff commit.
-2. If V11-03 exposes any remaining live-surface defect, classify and repair the genuine defect without weakening the architecture/guard.
-3. Close V11-03 when the current graph is green.
-4. Continue V11-04 through V11-20 without a permission pause.
-5. Keep ESPressio-ESP-Now and deprecated ESP-NOW-era Labs functionality out of the active redesign completion path.
-6. Do **not** begin Tranche 12/release preparation without separate authorization.
+Remediation:
+
+- **Mesh** `fdea7a04749f7138485a310ecfdc770298a9d0b2`
+- test now asserts the actual final worker architecture: bare `Threads::Thread` root, direct `IMeshRuntimeWorkSignal`, fixed noexcept owner/thunk service binding, bounded `WorkQuantum`, and explicit monotonic deadline publication.
+- no production code/version change.
+- all three exact-tip Mesh workflows GREEN, including Mesh clock/runtime redesign.
+
+Final cross-graph evidence for V11-01..06:
+
+- Primitive workflow run `34952785742`, latest successful attempt/job `104369045514`
+- locked dependency/migration validation: SUCCESS
+- V11-02: SUCCESS
+- V11-03: SUCCESS
+- V11-04: SUCCESS
+- V11-05: SUCCESS
+- V11-06: SUCCESS
+- final dynamic tooling contracts: SUCCESS
+- real four-capability Thread composition: SUCCESS
+
+## Current live frontier / immediate continuation
+
+**V11-07 is next.** Continue without a permission pause:
+
+1. re-query exact live tips before any mutation;
+2. implement/collect V11-07 host/public-header/no-RTTI/no-exception/sanitizer evidence without weakening existing contracts;
+3. proceed in authoritative order through V11-20, fixing genuine implementation/test/docs defects as exposed;
+4. update this handoff after each substantive frontier change;
+5. keep ESPressio-ESP-Now and deprecated ESP-NOW-era Labs out of the active redesign completion path unless separately re-authorized/rebaselined;
+6. **do not begin Tranche 12/release preparation without separate authorization.**
