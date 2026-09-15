@@ -31,7 +31,7 @@ jobs:
           repositories=(
             Primitive System Serializable Persistence Task Timing Threads Event Command State
             Adapters Radio Mesh MeshAdapters RadioAdapters Sockets Serial WiFi ESP32
-            Logging Security Units Web Lua NRF24
+            Logging Security Units Observable Web Lua NRF24
           )
           for repository in "${repositories[@]}"; do
             echo "Checking out ESPressio-${repository}/primitives_redesign"
