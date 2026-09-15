@@ -183,6 +183,10 @@ jobs:
         shell: bash
         run: bash validator/tools/run_v11_clock_validation.sh "$GITHUB_WORKSPACE/repos"
 
+      - name: V11-14 execute Command/Persistence crash, reboot and exactly-once evidence contracts
+        shell: bash
+        run: bash validator/tools/run_v11_command_persistence_validation.sh "$GITHUB_WORKSPACE/repos"
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
