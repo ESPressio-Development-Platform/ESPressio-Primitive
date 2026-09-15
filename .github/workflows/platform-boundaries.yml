@@ -175,6 +175,10 @@ jobs:
         shell: bash
         run: bash validator/tools/run_v11_provider_validation.sh "$GITHUB_WORKSPACE/repos"
 
+      - name: V11-12 execute Mesh multi-device broadcast, relay, congestion and failover contracts
+        shell: bash
+        run: bash validator/tools/run_v11_mesh_validation.sh "$GITHUB_WORKSPACE/repos"
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
