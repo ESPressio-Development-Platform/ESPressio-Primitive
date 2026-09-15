@@ -43,3 +43,26 @@ jobs:
 
       - name: Validate locked dependency and migration boundaries
         run: python validator/tools/validate_platform_boundaries.py repos
+
+      - name: Validate real Thread capability composition
+        shell: bash
+        run: |
+          set -euo pipefail
+          c++ -std=c++17 -Wall -Wextra -Werror -fno-rtti -pthread \
+            validator/tests/platform_thread_capability_integration.cpp \
+            -Irepos/ESPressio-Primitive/src \
+            -Irepos/ESPressio-System/src \
+            -Irepos/ESPressio-Serializable/src \
+            -Irepos/ESPressio-Persistence/src \
+            -Irepos/ESPressio-Security/src \
+            -Irepos/ESPressio-Task/src \
+            -Irepos/ESPressio-Task/tests \
+            -Irepos/ESPressio-Timing/src \
+            -Irepos/ESPressio-Units/src \
+            -Irepos/ESPressio-Observable/src \
+            -Irepos/ESPressio-Threads/src \
+            -Irepos/ESPressio-Event/src \
+            -Irepos/ESPressio-Command/src \
+            -Irepos/ESPressio-State/src \
+            -o /tmp/platform_thread_capability_integration
+          /tmp/platform_thread_capability_integration
