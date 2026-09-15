@@ -23,6 +23,8 @@ jobs:
 
       - name: Checkout current redesign graph
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p repos
@@ -32,8 +34,9 @@ jobs:
             Logging Security Units Web Lua NRF24
           )
           for repository in "${repositories[@]}"; do
+            echo "Checking out ESPressio-${repository}/primitives_redesign"
             git clone --quiet --depth 1 --branch primitives_redesign \
-              "https://github.com/ESPressio-Development-Platform/ESPressio-${repository}.git" \
+              "https://x-access-token:${GH_TOKEN}@github.com/ESPressio-Development-Platform/ESPressio-${repository}.git" \
               "repos/ESPressio-${repository}"
           done
 
