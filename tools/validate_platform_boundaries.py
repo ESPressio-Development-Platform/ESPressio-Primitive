@@ -84,11 +84,14 @@ REMOVED_PRODUCTION_TOKENS = (
     "CommandRegistryEventBridge",
     "ClockSynchronizationState",
     "StateEpoch",
+    "CommandRegistry",
 )
 
-# CommandRegistry is deliberately separate so the final descriptor/tooling vocabulary can
-# use words such as registry only where it is not the removed dynamic semantic CommandRegistry.
-REMOVED_COMMAND_REGISTRY = re.compile(r"\bCommandRegistry\b")
+REMOVED_PRODUCTION_PATTERNS = {
+    token: re.compile(rf"\b{re.escape(token)}\b")
+    for token in REMOVED_PRODUCTION_TOKENS
+}
+
 OBSOLETE_BRANCH = re.compile(
     r"ESPressio-Development-Platform/ESPressio-[A-Za-z0-9-]+\.git#"
     r"(?!primitives_redesign(?:[\"'\s]|$))([A-Za-z0-9_./-]+)"
@@ -139,6 +142,74 @@ def iter_files(repo: Path, roots: Iterable[str], suffixes: set[str] | None = Non
             if suffixes is not None and path.suffix.lower() not in suffixes:
                 continue
             yield path
+
+
+def strip_cpp_comments(text: str) -> str:
+    """Remove C/C++ comments while preserving identifiers, directives and string literals.
+
+    The eradication check is about executable/declarative source, not documentation that
+    explicitly explains which predecessor API no longer exists. A tiny lexer is used instead
+    of a regex so `//` or `/*` inside string/character literals is not mistaken for a comment.
+    Newlines inside comments are retained so diagnostics remain line-stable when inspected.
+    """
+    output: list[str] = []
+    index = 0
+    state = "code"
+    quote = ""
+
+    while index < len(text):
+        current = text[index]
+        following = text[index + 1] if index + 1 < len(text) else ""
+
+        if state == "code":
+            if current == "/" and following == "/":
+                state = "line-comment"
+                output.extend((" ", " "))
+                index += 2
+                continue
+            if current == "/" and following == "*":
+                state = "block-comment"
+                output.extend((" ", " "))
+                index += 2
+                continue
+            if current in {'"', "'"}:
+                state = "literal"
+                quote = current
+            output.append(current)
+            index += 1
+            continue
+
+        if state == "line-comment":
+            if current == "\n":
+                state = "code"
+                output.append("\n")
+            else:
+                output.append(" ")
+            index += 1
+            continue
+
+        if state == "block-comment":
+            if current == "*" and following == "/":
+                state = "code"
+                output.extend((" ", " "))
+                index += 2
+                continue
+            output.append("\n" if current == "\n" else " ")
+            index += 1
+            continue
+
+        # string/character literal: preserve it, including escaped quotes.
+        output.append(current)
+        if current == "\\" and index + 1 < len(text):
+            output.append(text[index + 1])
+            index += 2
+            continue
+        if current == quote:
+            state = "code"
+            quote = ""
+        index += 1
+
+    return "".join(output)
 
 
 def check_manifests(root: Path, errors: list[str]) -> None:
@@ -206,14 +277,12 @@ def check_removed_production_apis(root: Path, errors: list[str]) -> None:
             continue
         for path in iter_files(repo, ("src", "examples"), SOURCE_SUFFIXES):
             try:
-                text = path.read_text(encoding="utf-8")
+                text = strip_cpp_comments(path.read_text(encoding="utf-8"))
             except UnicodeDecodeError:
                 continue
-            for token in REMOVED_PRODUCTION_TOKENS:
-                if token in text:
+            for token, pattern in REMOVED_PRODUCTION_PATTERNS.items():
+                if pattern.search(text):
                     errors.append(f"{path.relative_to(root)}: removed production API token {token}")
-            if REMOVED_COMMAND_REGISTRY.search(text):
-                errors.append(f"{path.relative_to(root)}: removed dynamic CommandRegistry API")
 
 
 def main() -> int:
