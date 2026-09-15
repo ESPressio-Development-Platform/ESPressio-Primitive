@@ -1,8 +1,8 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
-Date: 2026-09-14
+Date: 2026-09-15
 Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-14
-Latest user time reference: 17:00 Europe/Prague
+Latest user time reference: 07:29 Europe/Prague
 
 This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be rebaselined before every implementation step.
 
@@ -57,8 +57,8 @@ Locked work order:
 11. D10-11 generic Lua State read/inspect only — **CLOSED/GREEN**
 12. D10-12 Serial Command/Event/State consoles/monitors -> final descriptors/diagnostics — **CLOSED/GREEN**
 13. D10-13 Serial Thread/Timing/transport/WiFi monitors -> final diagnostics seams — **CLOSED/GREEN**
-14. D10-14 WiFi Command/Event integration -> final family APIs — **ACTIVE NEXT**
-15. D10-15 WiFiWorker away from PrecisionThread
+14. D10-14 WiFi Command/Event integration -> final family APIs — **ACTIVE**
+15. D10-15 WiFiWorker away from PrecisionThread — **BLOCKED UNTIL D10-14 GREEN**
 16. D10-16 Logging bounded diagnostics validation
 17. D10-17 ESP32 non-Radio downstream cleanup
 18. D10-18 prove Units remains dependency-neutral
@@ -123,31 +123,31 @@ Serial Thread/Timing/provider diagnostics now consume final caller-owned seams i
 
 Exact-tip `Final Diagnostics Contract` run `34859791169` SUCCESS at Serial `a86612d78b57501870195c9d954d8993a8f25f97`, including host aggregate compile, ownership guards and ESP32 WiFi monitor compile.
 
-Aggregate Serial Host Tests run `34859791064` remains RED solely because `ESPressio-Logging` tip `50bf7ed76698152c97651a75a28a760bb33dcccb` still consumes removed Timing symbols (`ClockSynchronizationState` and `.State` on the final `ClockSynchronizationStatus`). Command/Event/family tooling and WiFi monitor targets build successfully in that same run. This is explicit D10-16 Logging migration debt, not a D10-12/D10-13 failure. Serializable warning-as-error noise is also visible downstream and remains D10-19 validation debt if still present after provider migrations.
+Aggregate Serial Host Tests run `34859791064` remains RED solely because `ESPressio-Logging` tip `50bf7ed76698152c97651a75a28a760bb33dcccb` still consumes removed Timing symbols (`ClockSynchronizationState` and `.State` on the final `ClockSynchronizationStatus`). Command/Event/family tooling and WiFi monitor targets build successfully in that same run. This is explicit D10-16 Logging migration debt, not a D10-12/D10-13 failure. Serializable warning-as-error noise was subsequently addressed in D10-14 downstream validation at Serializable `512b610eab89724deca680b7e62162e33b5f660f`.
 
 Documentation/examples were classified, not silently treated as final evidence: Serial README and `examples/EventMonitor/EventMonitor.ino` still describe predecessor Event transport/registry surfaces and are reserved for D10-20 documentation/example closure.
 
-## Immediate continuation — D10-14
+## D10-14 — WiFi final Command/Event integration — ACTIVE
 
 D10-14 migrates WiFi Command/Event integrations onto the final family APIs while keeping WiFi-specific configuration, persistence and hardware/platform semantics WiFi-owned.
 
-Exact pre-write baseline already observed: WiFi `8f959f19fbf4f7c3af42223ccc27521a4728f5dd`, manifest version `0.2.0`, core dependencies System + Observable + Serializable + Threads. Core manifest does not currently depend on Command or Event; preserve those integrations as opt-in surfaces unless a genuine core dependency is proven.
+The source migration is materially implemented. WiFi uses final typed Serializable Commands + `Command::Runtime`; WiFi Event dispatch uses typed final `TryDispatch` with family-owned admission. `WiFiWorker` remains deliberately untouched for separate D10-15 scope.
 
-Known predecessor surfaces already classified:
+D10-14 fixes landed during exact-tip validation:
 
-- `src/ESPressio_WiFiCommandHandler.hpp` uses removed dynamic `CommandRegistry`, `CommandNode`, `CommandContext` and `CommandResult` tree semantics. It must become typed final Command integration rather than receive a compatibility registry.
-- `src/ESPressio_WiFiEventBridge.hpp` registers a valid WiFi observer but heap-allocates Event objects and calls removed instance `Queue()` semantics. Preserve the WiFi observer ownership model but dispatch through final typed Event APIs with bounded family-owned admission.
-- `src/ESPressio_WiFiEvents.hpp` already models WiFi-owned Serializable Event payloads, but the Types lack final Event `TypeId`, `CanonicalName`, live/pending capacity metadata required by the frozen TypeDirectory/runtime contract. Preserve WiFi semantic ownership while making these valid final Event Types.
-- `src/ESPressio_WiFiWorker.hpp` remains a separate D10-15 migration target; do not fold its PrecisionThread work into D10-14.
+- Added an explicit `WiFiCommandResponse` outcome constructor after CRTP Serializable inheritance made the previous aggregate-style construction invalid.
+- Fully qualified Command family metadata in the WiFi typed Command declarations so nested WiFi command names cannot shadow the `::ESPressio::Command` namespace.
+- Serializable `primitives_redesign` exact tip `512b610eab89724deca680b7e62162e33b5f660f` (`Clarify migration control flow`) rewrites condensed migration control flow that triggered `-Wmisleading-indentation` under WiFi host warnings-as-errors validation.
+- WiFi `primitives_redesign` exact tip `da39424ae80195766a8a6ad6a5ab626927618238` (`Complete WiFi Event runtime surface`) includes the complete final Event provider/runtime surface required when typed `TryDispatch` instantiates `EventTypeRuntime<TEvent>`; it does not invent a WiFi-local Event runtime or compatibility facade.
 
-D10-14 requirements:
+Exact-tip validation evidence at WiFi `da39424ae80195766a8a6ad6a5ab626927618238`:
 
-1. inspect final Event bridge patterns and final Command handler/response contracts before writing;
-2. preserve stable WiFi Event semantic contracts and assign/check collision-free family TypeIds + canonical names before registration;
-3. Event bridge uses typed `TryDispatch`/final Event runtime only: no heap `new`, instance `Queue`, EventTransportManager, retry worker or duplicate listener topology;
-4. replace the old path/tree Command registry with a finite typed Command set and final Command runtime handler bindings; do not recreate string-path identity inside Command;
-5. preserve response/requester semantics for operations that genuinely return Command responses; do not downgrade response-bearing operations merely to fit generic tooling;
-6. WiFi configuration/persistence/radio-control semantics remain owned by `WiFiManager`; the Command binding invokes those APIs rather than duplicating WiFi state;
-7. keep Command/Event dependencies opt-in where possible so the WiFi core manifest remains on its current neutral dependency boundary;
-8. classify current tests/workflow before migration, add focused final-family compile/runtime tests and predecessor guards, then validate exact-tip CI;
-9. no version change; update this handoff after substantive D10-14 progression and continue directly to D10-15 when its completion gate is met.
+- WiFi architecture-contract run `34931486431`.
+- `esp32-family-surface` job `104260438988`: **SUCCESS**. The final WiFi Event + Command family surface compiles on ESP32 at the exact WiFi head.
+- `host-contracts` job `104260439076`: **FAILURE**, specifically in the `Build host contracts` step. Predecessor-architecture rejection and host configuration both succeed. The exact remaining compiler diagnostic is the current D10-14 blocker and must be recovered/fixed before closure.
+
+D10-14 is therefore **NOT CLOSED** yet. Its completion gate remains: exact same WiFi head (or its compiler-fix successor) must pass both host contracts and ESP32 family-surface validation. D10-15 remains mutation-blocked until that gate is green.
+
+### Immediate next action
+
+Recover the exact compiler path/line from host job `104260439076` (or its check-run annotations), patch only the compiler-confirmed final-contract defect, rerun exact-tip validation, then record D10-14 CLOSED/GREEN and proceed immediately to D10-15 WiFiWorker migration away from `Threads::PrecisionThread`.
