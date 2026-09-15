@@ -46,6 +46,9 @@ jobs:
       - name: V11-02 validate production-source eradication
         run: python validator/tools/validate_v11_source_eradication.py repos
 
+      - name: V11-03 validate live instructional and CI surfaces
+        run: python validator/tools/validate_v11_live_surfaces.py repos
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
