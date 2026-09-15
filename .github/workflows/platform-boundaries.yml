@@ -58,6 +58,37 @@ jobs:
       - name: V11-06 classify every current test and validation artifact
         run: python validator/tools/validate_v11_test_classification.py repos
 
+      - name: V11-07 compile restricted host public headers
+        run: python validator/tools/validate_v11_host_headers.py repos
+
+      - name: V11-07 sanitize real Thread capability composition
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/repos"
+          c++ -std=c++17 -Wall -Wextra -Werror -fno-rtti -fno-exceptions \
+            -fsanitize=address,undefined -fno-omit-frame-pointer -pthread \
+            validator/tests/platform_thread_capability_integration.cpp \
+            -I"$root/ESPressio-Primitive/src" \
+            -I"$root/ESPressio-System/src" \
+            -I"$root/ESPressio-Serializable/src" \
+            -I"$root/ESPressio-Persistence/src" \
+            -I"$root/ESPressio-Security/src" \
+            -I"$root/ESPressio-Task/src" \
+            -I"$root/ESPressio-Task/tests" \
+            -I"$root/ESPressio-Timing/src" \
+            -I"$root/ESPressio-Timing/tests/stubs" \
+            -I"$root/ESPressio-Units/src" \
+            -I"$root/ESPressio-Observable/src" \
+            -I"$root/ESPressio-Threads/src" \
+            -I"$root/ESPressio-Event/src" \
+            -I"$root/ESPressio-Command/src" \
+            -I"$root/ESPressio-State/src" \
+            -o /tmp/platform_thread_capability_sanitized
+          ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+          UBSAN_OPTIONS=halt_on_error=1 \
+            /tmp/platform_thread_capability_sanitized
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
