@@ -39,7 +39,6 @@ jobs:
               "https://x-access-token:${GH_TOKEN}@github.com/ESPressio-Development-Platform/ESPressio-${repository}.git" \
               "repos/ESPressio-${repository}"
           done
-          echo "ESPressio-ESP-Now is private and is validated by its own repository-local redesign-boundary workflow."
 
       - name: Validate locked dependency and migration boundaries
         run: python validator/tools/validate_platform_boundaries.py repos
@@ -58,6 +57,7 @@ jobs:
             -Irepos/ESPressio-Task/src \
             -Irepos/ESPressio-Task/tests \
             -Irepos/ESPressio-Timing/src \
+            -Irepos/ESPressio-Timing/tests/stubs \
             -Irepos/ESPressio-Units/src \
             -Irepos/ESPressio-Observable/src \
             -Irepos/ESPressio-Threads/src \
