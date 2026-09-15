@@ -1,8 +1,8 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-15
-Latest user time reference: **13:32 Europe/Prague**
-Continuation state: **Structural Tranches 2–10 CLOSED/GREEN; Tranche 11 ACTIVE with V11-01 through V11-06 CLOSED/GREEN; V11-07 is next.**
+Latest user time reference: **15:28 Europe/Prague**
+Continuation state: **Structural Tranches 2–10 CLOSED/GREEN; Tranche 11 ACTIVE with V11-01 through V11-06 CLOSED/GREEN; V11-07 ACTIVE.**
 
 This is the living continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for architecture, governance, dependency order, locked contracts, tranche gates and historical decisions. Live `primitives_redesign` branch tips are implementation truth and MUST be re-queried before every mutation.
 
@@ -146,13 +146,32 @@ Final cross-graph evidence for V11-01..06:
 - final dynamic tooling contracts: SUCCESS
 - real four-capability Thread composition: SUCCESS
 
+## V11-07 — ACTIVE
+
+The strengthened restricted public-header compiler is now deliberately uncovering stale contracts that textual eradication did not detect. Latest cross-graph reruns continue to keep V11-02 through V11-06 GREEN while V11-07 advances one concrete incompatibility at a time.
+
+Mesh remediation sequence on `primitives_redesign`:
+
+- `94b7222e5cedf9a480ba2eccdf3747a3355db394` — migrated Mesh forwarding, terminal correlation and physical-peer lifecycle to final `RadioRuntime`; trusted `MeshRelayServiceClass` now reaches the final Radio submission seam.
+- `05b644dddf005a6da0cd90203503043c9ecce4af` — migrated liveness to final Radio runtime and migrated finite control-work lifetimes to the six neutral relay service classes. Dedicated liveness run `34974351555`, job `104398198031`: GREEN including concrete final-Radio header compile and predecessor-surface rejection.
+- `dd917577635f098f133b266c7e1ded67fc7eac76` — aligned the managed Mesh-to-Radio submission regression with final `MeshRadioSubmissionResult {Status, TransferId}` semantics.
+- `11381a110209e43e3332722468cf2fa857234690` — migrated `NeighbourDiscoveryCoordinator` from deleted `RadioTransportMessageView` to final `RadioInboundTransferHandle`; provider/local-radio identity and generation-safe direct peer remain link evidence only and do not become semantic origin authority.
+- `f7b7694a530e84466c53ab1accf3c9f40510d5e3` — migrated protected destination delivery from removed `PrimitiveReceiveDisposition` to final `PrimitiveAdmissionDisposition`; only `Accepted`/`AlreadyAccepted` establishes destination admission/ACK, while retry candidates release the in-progress reservation.
+- `2ed4fbb6089831a393c5825afc8fc066813f6f96` — integrity repair restoring the complete inline M2 broadcast implementation after a contents-API replacement accidentally shortened that header; the repaired file is the exact pre-change implementation plus the intended final submission truth check.
+- `4b6662972ab2dd42a6873690d5e80f37129c7a8a` — aligned the M2 broadcast regression fake with final `RadioSchedulerStatus::Success`/non-zero transfer-id result semantics. Exact-tip Mesh redesign run `34976329517` has passed all substantive steps through compile+run of the replacement M2 broadcast coordinator; only workflow cleanup remained in progress when this handoff update was written.
+
+Important current test debt: `tests/mesh_v1_application_protection_coordinator_test.cpp` is a broad predecessor-era integration harness that still uses `RadioTransport`, predecessor provider observer/work APIs, removed Primitive admission vocabulary and the old four-class `MeshTrafficClass`/`DefaultMeshTrafficGovernor`. Do **not** shim production to satisfy it. Migrate it coherently only as the corresponding remaining Q1/final-Radio production surfaces are closed.
+
+Latest known Primitive platform validation run remains `34969584258`. On the latest completed attempt before the M2 repair, structural validation and V11-02..V11-06 all passed; V11-07 was the active red gate. Re-run V11-07 against Mesh tip `4b6662972ab2dd42a6873690d5e80f37129c7a8a` (or the newer live tip after re-query) and use the first compiler failure as the next remediation target.
+
 ## Current live frontier / immediate continuation
 
-**V11-07 is next.** Continue without a permission pause:
+Continue without a permission pause:
 
-1. re-query exact live tips before any mutation;
-2. implement/collect V11-07 host/public-header/no-RTTI/no-exception/sanitizer evidence without weakening existing contracts;
-3. proceed in authoritative order through V11-20, fixing genuine implementation/test/docs defects as exposed;
-4. update this handoff after each substantive frontier change;
-5. keep ESPressio-ESP-Now and deprecated ESP-NOW-era Labs out of the active redesign completion path unless separately re-authorized/rebaselined;
-6. **do not begin Tranche 12/release preparation without separate authorization.**
+1. re-query the exact Mesh/Primitive branch tips before mutation;
+2. confirm Mesh redesign run `34976329517` completes GREEN on `4b666297...`;
+3. rerun Primitive platform validation `34969584258` and continue V11-07 compiler-driven eradication from the first failing public header;
+4. migrate broad predecessor-era Mesh/Q1 tests only after their exercised production surface is final—never restore old APIs to make tests compile;
+5. after V11-07 is fully GREEN, proceed immediately in authoritative order through V11-08..V11-20, updating this handoff after substantive frontier changes;
+6. keep ESPressio-ESP-Now and deprecated ESP-NOW-era Labs out of the active redesign completion path unless separately re-authorized/rebaselined;
+7. **do not begin Tranche 12/release preparation without separate authorization.**
