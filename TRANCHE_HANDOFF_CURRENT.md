@@ -1,7 +1,7 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-15
-Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-16
+Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-17
 Latest user time reference: 08:24 Europe/Prague
 
 This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be re-queried before every mutation.
@@ -41,6 +41,7 @@ Before changing any repository:
 - Threads uses one root Thread task/stack/common Wake. `ThreadWith<TCapabilities...>` is the sole generic capability composition host; bare `Thread` is the sole zero-capability spelling.
 - Reusable specialized Thread flavours including `PrecisionThread` are removed, not retained as aliases/wrappers/facades. Concrete domain workers may remain by composing final capabilities.
 - Precision is a resident capability over the root Thread. It owns cadence/telemetry semantics but no private task, private scheduler loop, private wake signal or `Iterate()` callback. `DesiredIterationPeriod` is replaced by explicit execution-budget semantics.
+- Timing owns clock discipline and final reliability/evidence vocabulary. Downstream diagnostics consume `TimeReliability` / final status fields and do not restore predecessor synchronization-state APIs.
 - No structural-tranche version changes.
 
 ## Structural Tranche 10 — ACTIVE
@@ -62,8 +63,8 @@ Locked work order:
 13. D10-13 Serial Thread/Timing/transport/WiFi monitors -> final diagnostics seams — **CLOSED/GREEN**
 14. D10-14 WiFi Command/Event integration -> final family APIs — **CLOSED/GREEN**
 15. D10-15 WiFiWorker away from PrecisionThread — **CLOSED/GREEN**
-16. D10-16 Logging bounded diagnostics validation — **ACTIVE**
-17. D10-17 ESP32 non-Radio downstream cleanup
+16. D10-16 Logging bounded diagnostics validation — **CLOSED/GREEN**
+17. D10-17 ESP32 non-Radio downstream cleanup — **ACTIVE**
 18. D10-18 prove Units remains dependency-neutral
 19. D10-19 tests/examples/manifests/workflows/dependency guards/security tests
 20. D10-20 docs/schema examples/cross-tool integration validation
@@ -82,55 +83,71 @@ Locked work order:
 - D10-10 Lua Event closure tip `8eeff358a862391856b70903b42c074ebf2c25f1`; focused `34834794887` SUCCESS; aggregate `34834794904` SUCCESS.
 - D10-11 Lua State closure tip `e09f01755b8ebf4094f66270e7cce13a6399c06b`; focused `34847762946` SUCCESS; aggregate `34847763087` SUCCESS.
 - D10-12 Serial closure tip `a86612d78b57501870195c9d954d8993a8f25f97`; focused Command run `34859791114` SUCCESS.
-- D10-13 Serial `Final Diagnostics Contract` run `34859791169` SUCCESS. Aggregate Serial run `34859791064` remains red only for independently-owned Logging/Timing migration debt now active under D10-16.
+- D10-13 focused Serial `Final Diagnostics Contract` run `34859791169` SUCCESS; D10-16 subsequently closed the aggregate downstream gaps that this compile-focused evidence did not exercise.
 
 ## D10-14 — WiFi final Command/Event integration — CLOSED/GREEN
 
-WiFi Command/Event integration now consumes final family APIs. WiFi owns WiFi semantics/configuration/persistence/platform behavior but no duplicate Command/Event runtime.
-
-Source closure WiFi tip before D10-15: `da39424ae80195766a8a6ad6a5ab626927618238` (`Complete WiFi Event runtime surface`). Exact-tip downstream validation exposed and fixed dependency/test-infrastructure defects without weakening WiFi family semantics:
+WiFi Command/Event integration consumes final family APIs and owns no duplicate Command/Event runtime.
 
 - Serializable `9bec7caa4fb515e564ea0146bd44f77610e9aebc`; run `34936398752`: host `104275135814` SUCCESS, ESP32 `104275136043` SUCCESS.
-- Task `db7380e7b247cace222a96bebae056205efc0963`; run `34936630325`: host `104275852921` SUCCESS, ESP32 `104275852749` SUCCESS.
-- Final WiFi run `34931486431`: host `104276459857` SUCCESS, ESP32 `104276461079` SUCCESS.
+- Task test infrastructure `db7380e7b247cace222a96bebae056205efc0963`; run `34936630325`: host `104275852921` SUCCESS, ESP32 `104275852749` SUCCESS.
+- Final WiFi D10-14 run `34931486431`: host `104276459857` SUCCESS, ESP32 `104276461079` SUCCESS.
 
 ## D10-15 — WiFiWorker final Thread/Precision composition — CLOSED/GREEN
 
-Architecture target from TH8/TH11/TH14 is implemented. The concrete `WiFiWorker` remains, but now composes the final generic Thread host plus resident Precision capability. No reusable `PrecisionThread` compatibility type, `Iterate()` callback, private scheduler, private wake signal or extra worker task was introduced. Manager demand continues through Precision `Bump()` -> root common Wake. `DesiredExecutionBudgetMilliseconds` maps to Precision's explicit iteration execution budget.
-
 Implementation commits on `ESPressio-WiFi/primitives_redesign`:
 
-- `9411436244787d6332686d054b2d1c3f25448dbf` — production `WiFiWorker` migrated to `ThreadWith<Precision<8>>`, `OnLoop()`/cadence/execution-budget/Bump semantics.
+- `9411436244787d6332686d054b2d1c3f25448dbf` — `WiFiWorker` -> `ThreadWith<Precision<8>>`, final `OnLoop()`/cadence/execution-budget/Bump semantics.
 - `727880476d13c8c7c3ae635cdd1521d2babe6136` — final worker contract test.
-- `9aa7d5ace928fe71b206a741e53c4d6a183880ec` — worker contract wired into CTest.
+- `9aa7d5ace928fe71b206a741e53c4d6a183880ec` — worker contract wired into host CTest.
 - `48a2bca844245cf08e5b4e3ff2c603f865bfa914` — anti-legacy CI guard and ESP32 final worker compilation surface.
 
-Exact final WiFi run `34937355325` at head `48a2bca844245cf08e5b4e3ff2c603f865bfa914`:
+Final run `34937355325` at head `48a2bca844245cf08e5b4e3ff2c603f865bfa914`: host `104278069924` SUCCESS; ESP32 `104278069751` SUCCESS.
 
-- `host-contracts` job `104278069924`: **SUCCESS**, including `ESPressioWiFiWorkerContract` and predecessor-API rejection.
-- `esp32-family-surface` job `104278069751`: **SUCCESS**, compiling final WiFi Thread/Event/Command surface.
+## D10-16 — Logging bounded diagnostics validation — CLOSED/GREEN
 
-D10-15 is therefore **CLOSED/GREEN**.
+Logging was migrated from removed Timing synchronization-state vocabulary to final bounded `Timing::TimeReliability` semantics without restoring compatibility aliases.
 
-## D10-16 — Logging bounded diagnostics validation — ACTIVE
+Logging commits on `ESPressio-Logging/primitives_redesign`:
 
-Current exact Logging baseline before mutation: `ESPressio-Logging/primitives_redesign` tip `50bf7ed76698152c97651a75a28a760bb33dcccb`.
+- `0e9ff772d8e7079aa6b6d33431482f86f7d56cb6` — `LogTimestamp` now stores `Timing::TimeReliability SystemReliability`.
+- `9d7ac007d450b572103b56cb38e91bb93124670b` — `Logger::CaptureTimestamp()` now consumes `ClockSynchronizationStatus::Reliability`.
+- `e875c37899515f902b980c2196b667cc058b82e3` — host contract validates final reliability vocabulary.
+- `10b5209fd05a9c61c95deda9176f45584d8b6459` — workflow rejects predecessor Timing diagnostics and validates final host/ESP32 surface.
 
-Initial audit findings:
+Logging run `34937769272` at head `10b5209fd05a9c61c95deda9176f45584d8b6459`:
 
-- `src/ESPressio_LogRecord.hpp` still stores removed `Timing::ClockSynchronizationState` in `LogTimestamp`.
-- `src/ESPressio_Logger.hpp::CaptureTimestamp()` still reads `synchronization.State` from `ClockSynchronizationStatus`.
-- `tests/test_logging.cpp` still constructs timestamps with `ClockSynchronizationState::Unsynchronized`.
-- Final Timing now exposes `ClockSynchronizationStatus::Reliability` using `Timing::TimeReliability`; there is no `.State` compatibility field and no `ClockSynchronizationState` compatibility enum.
-- Logging already directly depends on final Timing; no new dependency edge is required.
+- host `104279337186`: **SUCCESS**.
+- ESP32 `104279336967`: **SUCCESS**.
 
-D10-16 must migrate Logging to the final bounded Timing diagnostic vocabulary, update tests/workflow guards, and validate both host and ESP32 against current dependency tips. It must not resurrect predecessor Timing state APIs merely to preserve source compatibility.
+Downstream Serial aggregate revalidation exposed and closed two stale consumers rather than weakening provider APIs:
+
+- `0ac974568e1e5e63260072672b56891442400004` — Serial Logging test migrated to `TimeReliability::Synchronized`.
+- `a89261887fd13997bba03061db48806933b97ff0` — aggregate Serial CI rejects predecessor Timing diagnostic vocabulary.
+- `342b71ddf76a4c233c4748528bec53e7053bce0e` — completed the final `IWiFiObserver`-based WiFi monitor diagnostic facts (client/scan/AP-until-client/selection/IP/MAC) that aggregate behavioral testing exposed as incomplete. No WiFi runtime ownership or predecessor family bridge was reintroduced.
+
+Final Serial head `342b71ddf76a4c233c4748528bec53e7053bce0e` validation:
+
+- Host Tests run `34938272919`, job `104280871049`: **SUCCESS** including configure/build/all aggregate CTest.
+- Final Diagnostics Contract run `34938272888`:
+  - ownership-boundaries `104280871089`: **SUCCESS**;
+  - host-diagnostic-aggregator `104280871093`: **SUCCESS**;
+  - esp32-wifi-monitor `104280870895`: **SUCCESS**.
+- Command Console Final Contract run `34938273002`: **SUCCESS**.
+
+D10-16 is therefore **CLOSED/GREEN**.
+
+## D10-17 — ESP32 non-Radio downstream cleanup — ACTIVE
+
+Current baseline before D10-17 mutation must be re-queried. Last observed `ESPressio-ESP32/primitives_redesign` head was `53d67b9f9099094bd8818a518567578fede1c941`.
+
+Scope is explicitly **non-Radio** downstream cleanup. Do not reopen or restructure the Radio/R3 architecture under this item. Audit the ESP32 manifest first, then concrete System/Persistence/Timing/WiFi/platform glue, tests, examples and workflows for stale provider contracts or removed Thread/Timing/Event/Command/State APIs. Consume final provider contracts; do not add compatibility façades.
 
 ### Immediate next action
 
-1. Re-query Logging exact head and the exact source blob SHAs before writes.
-2. Replace `LogTimestamp` synchronization-state storage with final `Timing::TimeReliability` semantics and update `Logger::CaptureTimestamp()` to copy `ClockSynchronizationStatus::Reliability`.
-3. Update tests to final reliability values and add anti-legacy workflow guards.
-4. Run exact-tip Logging host + ESP32 validation.
-5. Re-run/confirm the previously blocked Serial aggregate consumer against the repaired Logging tip if its workflow naturally consumes live Logging/Timing redesign heads.
-6. Record D10-16 closure here and proceed immediately to D10-17 ESP32 non-Radio downstream cleanup.
+1. Re-query the exact ESP32 `primitives_redesign` head and manifest.
+2. Inventory non-Radio production/test/workflow paths separately from Radio implementation paths.
+3. Search for stale final-provider API references and dependency drift, classifying every hit before mutation.
+4. Apply only confirmed non-Radio migration fixes and add anti-regression validation.
+5. Validate exact ESP32 head and relevant downstream consumers before closing D10-17.
+6. Record closure here and proceed directly to D10-18 Units dependency-neutral proof.
