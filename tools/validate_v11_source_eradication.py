@@ -23,7 +23,7 @@ REPOSITORIES = (
 )
 
 # Symbols/types that the locked redesign explicitly removes rather than preserving
-# through compatibility aliases, wrappers or facades.  Keep this list identifier-
+# through compatibility aliases, wrappers or facades. Keep this list identifier-
 # based so similarly worded prose or unrelated identifiers do not become failures.
 REMOVED_IDENTIFIERS = (
     "PrecisionThread",
@@ -44,6 +44,16 @@ REMOVED_IDENTIFIERS = (
     "RemoteStateObserverThread",
     "StateEpoch",
     "RadioWorker",
+    "RadioTransport",
+    "RadioTransportSendResult",
+    "RadioTransportSendStatus",
+    "DeferredLogicalTransferHandle",
+    "LogicalTransferTerminalEvidence",
+    "ILogicalTransferTerminalObserver",
+    "DeferredLogicalTransferObserverBridge",
+    "DeferredLogicalTransferTracker",
+    "IRadioTransportPeerObserver",
+    "RadioPeerInvalidationReason",
     "ThreadManager",
     "ThreadTerminationDispatcher",
     "PrecisionScheduler",

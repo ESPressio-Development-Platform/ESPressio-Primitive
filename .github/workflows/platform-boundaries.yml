@@ -66,7 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           root="$GITHUB_WORKSPACE/repos"
-          c++ -std=c++17 -Wall -Wextra -Werror -fno-rtti -fno-exceptions \
+          c++ -std=c++17 -Wall -Wextra -Werror -fno-rtti \
             -fsanitize=address,undefined -fno-omit-frame-pointer -pthread \
             validator/tests/platform_thread_capability_integration.cpp \
             -I"$root/ESPressio-Primitive/src" \
