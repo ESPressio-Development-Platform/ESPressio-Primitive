@@ -113,6 +113,60 @@ jobs:
           UBSAN_OPTIONS=halt_on_error=1 \
             /tmp/platform_wire_malformed_property
 
+      - name: V11-09 execute capacity, exhaustion and no-hidden-heap contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/repos"
+
+          configure_and_run() {
+            local repo="$1"
+            local build="$2"
+            local regex="$3"
+            shift 3
+            cmake -S "$root/ESPressio-${repo}/tests" -B "$build" "$@"
+            cmake --build "$build" --parallel 2
+            ctest --test-dir "$build" --output-on-failure -R "$regex"
+          }
+
+          configure_and_run Event /tmp/v11-event \
+            'event_(pool_lifetime|thread_capability|blocking_admission|remote_receipts|remote_contention)' \
+            -DESPRESSIO_DEPENDENCIES="$root"
+
+          configure_and_run Command /tmp/v11-command \
+            'command_(runtime|response_capability|critical_execution|no_heap)' \
+            -DESPRESSIO_DEPENDENCIES="$root"
+
+          configure_and_run Adapters /tmp/v11-adapters \
+            'adapter_(byte_arena|capacity|capacity_rollback|capacity_fit|no_heap|runtime_no_heap|resources|stress)' \
+            -DESPRESSIO_DEPENDENCIES="$root"
+
+          configure_and_run Task /tmp/v11-task \
+            '(idle_worker|executor|configuration|rejected_contracts)' \
+            -DESPRESSIO_SYSTEM_SOURCE_DIR="$root/ESPressio-System"
+
+          configure_and_run Threads /tmp/v11-threads \
+            '(composition|common_wake_and_deadlines)' \
+            -DESPRESSIO_DEPENDENCIES="$root"
+
+          radio="$root/ESPressio-Radio"
+          common=(
+            -std=c++17 -Wall -Wextra -Werror -fno-rtti -pthread
+            -I"$radio/src"
+            -I"$root/ESPressio-System/src"
+            -I"$root/ESPressio-Timing/src"
+          )
+          for test in \
+            radio_capacity_redesign_tests \
+            radio_resource_accounting_tests \
+            radio_reassembly_redesign_tests \
+            radio_validation_hardening_tests \
+            radio_scheduler_redesign_tests
+          do
+            c++ "${common[@]}" "$radio/tests/${test}.cpp" -o "/tmp/${test}"
+            "/tmp/${test}"
+          done
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
