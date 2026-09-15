@@ -179,6 +179,10 @@ jobs:
         shell: bash
         run: bash validator/tools/run_v11_mesh_validation.sh "$GITHUB_WORKSPACE/repos"
 
+      - name: V11-13 execute qualified Clock load, uncertainty and reference-switch contracts
+        shell: bash
+        run: bash validator/tools/run_v11_clock_validation.sh "$GITHUB_WORKSPACE/repos"
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
