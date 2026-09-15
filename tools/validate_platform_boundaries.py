@@ -4,11 +4,6 @@
 This is intentionally a structural validator. Family/runtime behavioural semantics remain
 owned and tested by their repositories; this script prevents cross-repository dependency,
 branch, and removed-API drift from silently reintroducing predecessor architecture.
-
-Private redesign repositories cannot be read by another repository's scoped GITHUB_TOKEN.
-They are therefore named explicitly in SELF_GUARDED_REPOSITORIES and must carry the
-same structural checks in their own repository-local workflow. They are never silently
-omitted from the platform validation model.
 """
 
 from __future__ import annotations
@@ -42,15 +37,11 @@ REPOSITORIES = (
     "Logging",
     "Security",
     "Units",
+    "Observable",
     "Web",
     "Lua",
     "NRF24",
 )
-
-# ESPressio-ESP-Now is private. Its redesign boundary workflow runs inside that repository,
-# where its repository-scoped token can read the source. Demos/Tree/Display/Labs are private
-# too but are not part of this structural tranche.
-SELF_GUARDED_REPOSITORIES = ("ESP-Now",)
 
 DEPENDENCY_NEUTRAL = {"Primitive", "System", "Units"}
 
@@ -301,10 +292,6 @@ def main() -> int:
     print(
         "Primitive-platform public structural validation passed: locked DAG, redesign branch refs, "
         "and removed production APIs remain clean."
-    )
-    print(
-        "Private in-scope repository validation is explicit and repository-local: "
-        + ", ".join(f"ESPressio-{name}" for name in SELF_GUARDED_REPOSITORIES)
     )
     return 0
 
