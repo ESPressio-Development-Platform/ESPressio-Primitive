@@ -1,0 +1,60 @@
+name: V11 Deterministic Resource Accounting
+
+on:
+  push:
+    branches: [primitives_redesign]
+  pull_request:
+    branches: [primitives_redesign]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-resource-accounting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout validator
+        uses: actions/checkout@v4
+        with:
+          path: validator
+
+      - name: Checkout current redesign dependencies
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p repos
+          repositories=(Primitive System Serializable Persistence Security Task Timing Units Observable Threads Event Command State)
+          for repository in "${repositories[@]}"; do
+            git clone --quiet --depth 1 --branch primitives_redesign \
+              "https://x-access-token:${GH_TOKEN}@github.com/ESPressio-Development-Platform/ESPressio-${repository}.git" \
+              "repos/ESPressio-${repository}"
+          done
+
+      - name: Compile deterministic resource accounting proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/repos"
+          c++ -std=c++17 -Wall -Wextra -Werror -fno-rtti -pthread \
+            validator/tests/platform_resource_accounting.cpp \
+            -I"$root/ESPressio-Primitive/src" \
+            -I"$root/ESPressio-System/src" \
+            -I"$root/ESPressio-Serializable/src" \
+            -I"$root/ESPressio-Persistence/src" \
+            -I"$root/ESPressio-Security/src" \
+            -I"$root/ESPressio-Task/src" \
+            -I"$root/ESPressio-Timing/src" \
+            -I"$root/ESPressio-Timing/tests/stubs" \
+            -I"$root/ESPressio-Units/src" \
+            -I"$root/ESPressio-Observable/src" \
+            -I"$root/ESPressio-Threads/src" \
+            -I"$root/ESPressio-Event/src" \
+            -I"$root/ESPressio-Command/src" \
+            -I"$root/ESPressio-State/src" \
+            -o /tmp/platform_resource_accounting
+
+      - name: Emit and validate deterministic resource report
+        run: /tmp/platform_resource_accounting
