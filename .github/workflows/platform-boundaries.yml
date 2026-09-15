@@ -43,6 +43,9 @@ jobs:
       - name: Validate locked dependency and migration boundaries
         run: python validator/tools/validate_platform_boundaries.py repos
 
+      - name: V11-02 validate production-source eradication
+        run: python validator/tools/validate_v11_source_eradication.py repos
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
