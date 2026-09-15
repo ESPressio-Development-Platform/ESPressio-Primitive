@@ -49,6 +49,12 @@ jobs:
       - name: V11-03 validate live instructional and CI surfaces
         run: python validator/tools/validate_v11_live_surfaces.py repos
 
+      - name: V11-04 validate exact final dependency DAG
+        run: python validator/tools/validate_v11_dependency_dag.py repos
+
+      - name: V11-05 validate forbidden edges and redesign branch guards
+        run: python validator/tools/validate_v11_forbidden_edges.py repos
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
