@@ -1,26 +1,26 @@
 # Primitive Platform Redesign — Current Continuation Handoff
 
 Date: 2026-09-15
-Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-14
-Latest user time reference: 07:29 Europe/Prague
+Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-15
+Latest user time reference: 08:24 Europe/Prague
 
-This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be rebaselined before every implementation step.
+This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be re-queried before every mutation.
 
 ## Authorization boundary
 
 Implementation remains authorized through structural Tranches 8–11 without further permission pauses. Version changes, release/CHANGELOG finalization, `main` reintegration, tags/releases, Wiki publication, force pushes and backward-compatibility shims remain outside authorization. Tranche 12 release preparation remains separate and unauthorized.
 
-The user requires this living handoff to remain present on `ESPressio-Primitive/primitives_redesign` and to be mirrored as an up-to-date downloadable conversation artifact whenever substantive progress is reported.
+The user requires continuous implementation rather than status-only pauses. This handoff must remain current on `ESPressio-Primitive/primitives_redesign` so a successor agent can resume without reconstructing the tranche.
 
 ## Mandatory continuation protocol
 
 Before changing any repository:
 
-1. re-query the exact source-branch tip;
-2. inspect the current manifest/dependency boundary before implementation source;
-3. consume already-closed provider contracts rather than reintroducing predecessor APIs for compatibility;
-4. classify existing tests/examples semantically before migrating or executing them;
-5. keep changes small/coherent and validate exact-tip workflows;
+1. re-query the exact `primitives_redesign` branch tip wherever that branch exists;
+2. inspect the manifest/dependency boundary before implementation source;
+3. consume already-closed provider contracts rather than reintroducing predecessor APIs;
+4. classify tests/examples semantically before migrating them;
+5. keep mutations small/coherent and validate exact-tip workflows;
 6. update this handoff in the same work session after substantive progression.
 
 ## Locked non-regression rules
@@ -34,10 +34,13 @@ Before changing any repository:
 - Immediate physical peer and validated semantic `OriginalSource` remain distinct provenance facts.
 - No family-local retry worker, retry queue, fragmentation engine or duplicate family runtime.
 - Registration/topology freezes before Running; bounded resources and nonblocking ingress remain mandatory.
-- Dynamic/common consumers consume final TypeDirectory/P3/family descriptors/factories/diagnostics and do not become new semantic owners.
-- Generic State access from tooling is read/inspect only; no arbitrary mutation or generic `SetByTypeId` may be invented.
+- Dynamic/common consumers consume final TypeDirectory/P3/family descriptors/factories/diagnostics and do not become semantic owners.
+- Generic State tooling remains read/inspect only; no generic mutation surface may be invented.
 - TypeDirectory/schema availability is discovery metadata, never authorization.
 - Dynamic input is bounded before parse/construction; no unbounded heap fallback or exception-driven retry path.
+- Threads uses one root Thread task/stack/common Wake. `ThreadWith<TCapabilities...>` is the sole generic capability composition host; bare `Thread` is the sole zero-capability spelling.
+- Reusable specialized Thread flavours including `PrecisionThread` are removed, not retained as aliases/wrappers/facades. Concrete domain workers may remain by composing final capabilities.
+- Precision is a resident capability over the root Thread. It owns cadence/telemetry semantics but no private task, private scheduler loop, private wake signal or `Iterate()` callback. `DesiredIterationPeriod` is replaced by explicit execution-budget semantics.
 - No structural-tranche version changes.
 
 ## Structural Tranche 10 — ACTIVE
@@ -57,8 +60,8 @@ Locked work order:
 11. D10-11 generic Lua State read/inspect only — **CLOSED/GREEN**
 12. D10-12 Serial Command/Event/State consoles/monitors -> final descriptors/diagnostics — **CLOSED/GREEN**
 13. D10-13 Serial Thread/Timing/transport/WiFi monitors -> final diagnostics seams — **CLOSED/GREEN**
-14. D10-14 WiFi Command/Event integration -> final family APIs — **ACTIVE**
-15. D10-15 WiFiWorker away from PrecisionThread — **BLOCKED UNTIL D10-14 GREEN**
+14. D10-14 WiFi Command/Event integration -> final family APIs — **CLOSED/GREEN**
+15. D10-15 WiFiWorker away from PrecisionThread — **ACTIVE**
 16. D10-16 Logging bounded diagnostics validation
 17. D10-17 ESP32 non-Radio downstream cleanup
 18. D10-18 prove Units remains dependency-neutral
@@ -67,87 +70,58 @@ Locked work order:
 
 ## Closed D10 evidence summary
 
-### D10-01 through D10-05
+- D10-01 focused run `34820218599` SUCCESS.
+- D10-02 Web schema run `34823200466` SUCCESS.
+- D10-03 Web typed Command run `34823927243` SUCCESS.
+- D10-04 Event dynamic-dispatch run `34825328341` SUCCESS.
+- D10-05 generic State read-only run `34827626308` SUCCESS.
+- D10-06 WebSocket focused run `34830311993` SUCCESS; aggregate Web Host `34830311963` SUCCESS.
+- D10-07 Timing evidence focused run `34831049103` SUCCESS; aggregate `34831049006` SUCCESS.
+- D10-08 Lua Primitive discovery focused run `34831877208` SUCCESS at Lua `d15ad661a9da41224670f2b30d7be357a598ac6b`.
+- D10-09 Lua Command closure tip `ce1e7a5cb83b150f52e99160d5c6c8e97e90c457`; focused `34834072387` SUCCESS; aggregate `34834072357` SUCCESS.
+- D10-10 Lua Event closure tip `8eeff358a862391856b70903b42c074ebf2c25f1`; focused `34834794887` SUCCESS; aggregate `34834794904` SUCCESS.
+- D10-11 Lua State closure tip `e09f01755b8ebf4094f66270e7cce13a6399c06b`; focused `34847762946` SUCCESS; aggregate `34847763087` SUCCESS.
+- D10-12 Serial closure tip `a86612d78b57501870195c9d954d8993a8f25f97`; focused Command run `34859791114` SUCCESS.
+- D10-13 Serial `Final Diagnostics Contract` run `34859791169` SUCCESS. Aggregate Serial run `34859791064` remains red only for independently-owned Logging/Timing migration debt reserved for D10-16.
 
-- D10-01: final fixed-capacity frozen Primitive `TypeDirectory` / immutable `TypeDirectoryView` consumed by Web; focused run `34820218599` SUCCESS.
-- D10-02: P3 remains Serializable-owned; dynamic construction remains family-owned. Event provider `532d04e1200b04b5734b68467018c597ae996223`; Command provider `658a9f9064a8ef58a0016d041a29be0c8ca3da7f`; State provider `25637a7555e3a03f1d709bd8e37340bc4d545b6e`; Web schema run `34823200466` SUCCESS.
-- D10-03: Web raw `CommandRequestEnvelope` / `InboundCommandEvent` path replaced with bounded TypeDirectory/P3/family-owned `Command::SubmitDynamicCommand`; run `34823927243` SUCCESS.
-- D10-04: obsolete HTTP `IEventTransport` path removed; bounded descriptor-driven `Event::DispatchDynamicEvent` with explicit authorization; run `34825328341` SUCCESS.
-- D10-05: Web State tooling is GET/HEAD read-only through immutable State descriptors + `ReadDynamicState()`, including exact `TruthTime`; run `34827626308` SUCCESS. No generic mutation was added.
+## D10-14 — WiFi final Command/Event integration — CLOSED/GREEN
 
-### D10-06 — WebSocket final transport composition
+WiFi Command/Event integration now consumes final family APIs. WiFi owns WiFi semantics/configuration/persistence/platform behavior but no duplicate Command/Event runtime.
 
-Web composes binary WebSocket sessions into final Sockets/A2 through `ESPressio_WebSocketSocketAdapter.hpp`; route slots freeze before Sockets start and Web owns no Primitive-family transport semantics. Predecessor WebSocket Event bridge/events/transport artifacts were removed with no shim. Exact post-deletion focused run `34830311993` SUCCESS; aggregate Web Host Tests `34830311963` SUCCESS.
+Source closure WiFi tip before D10-15: `da39424ae80195766a8a6ad6a5ab626927618238` (`Complete WiFi Event runtime surface`). The final typed Event bridge includes the complete Event runtime surface needed for `TryDispatch`; typed WiFi Commands use final Command runtime/descriptor contracts.
 
-### D10-07 — Web clock helper final Timing evidence
+Exact-tip downstream validation exposed and fixed two independent dependency/test-infrastructure defects rather than weakening WiFi family semantics:
 
-Web clock synchronization now composes Sockets V2 K1/K2 evidence with final `Timing::IClockSynchronizationTarget`; Web owns no fixed cadence, estimator, historical timestamp reconstruction or clock worker. Exact focused `WebSocket Timing Evidence Contract` run `34831049103` SUCCESS; aggregate Web Host Tests `34831049006` SUCCESS.
+- Serializable `9bec7caa4fb515e564ea0146bd44f77610e9aebc` completes zero-property bounded-schema handling through metadata/schema/deserializer paths. Serializable run `34936398752`: host job `104275135814` SUCCESS; ESP32 job `104275136043` SUCCESS.
+- Task `db7380e7b247cace222a96bebae056205efc0963` expands the deterministic test-only `HostRuntime` execution-context capacity so the legitimate 13 WiFi Command lanes plus response router can initialize. Task run `34936630325`: host job `104275852921` SUCCESS; ESP32 job `104275852749` SUCCESS. No production Command/Task capacity semantics were changed.
 
-### D10-08 — Lua Primitive discovery
+Final WiFi validation uses run `34931486431` against those live dependency tips:
 
-Lua has explicit `primitives_redesign`. `ESPressio_LuaPrimitiveDiscovery.hpp` borrows one frozen TypeDirectory view and exposes common metadata only; no second mutable registry and no FamilyExtension authorization handle. Lua core manifest remains System-only, version `1.0.0`. Focused run `34831877208` SUCCESS at Lua `d15ad661a9da41224670f2b30d7be357a598ac6b`.
+- `host-contracts` job `104276459857`: **SUCCESS** — predecessor-architecture rejection, configure, build and all host contracts pass.
+- `esp32-family-surface` job `104276461079`: **SUCCESS**.
 
-### D10-09 — Lua typed Command admission
+D10-14 is therefore **CLOSED/GREEN**.
 
-Lua opt-in `ESPressio_LuaCommand.hpp` uses final Command descriptors and bounded P3 bytes with application-owned authorization. Fire-and-forget submission delegates to `Command::SubmitDynamicCommand`; response-bearing Commands remain requester-required and are rejected by the generic Lua path. Lua owns no Command registry/pool/retry/transport/worker lifecycle. Closure tip `ce1e7a5cb83b150f52e99160d5c6c8e97e90c457`; focused run `34834072387` SUCCESS; aggregate `34834072357` SUCCESS.
+## D10-15 — WiFiWorker final Thread/Precision composition — ACTIVE
 
-### D10-10 — Lua Event dispatch
+Architecture target is locked by TH8/TH11/TH14: the concrete `WiFiWorker` remains valid, but must compose the final generic Thread host plus resident Precision capability. It must not derive from or preserve `PrecisionThread`, must not retain `Iterate()`, and must not own another scheduler/task/signal. WiFi work demand continues to use Precision `Bump()` through the one common Thread wake. `DesiredExecutionBudgetMilliseconds` maps to Precision's explicit iteration execution budget, not to a second cadence concept.
 
-Lua opt-in `ESPressio_LuaEvent.hpp` uses frozen TypeDirectory + immutable Event descriptors, explicit application authorization and bounded P3. Family-owned `Event::DispatchDynamicEvent` owns decode/construction/occurrence/pool/lane/dispatch; Lua owns no listener topology, occurrence identity lifecycle, retry, transport or worker. Closure tip `8eeff358a862391856b70903b42c074ebf2c25f1`; focused run `34834794887` SUCCESS; aggregate `34834794904` SUCCESS.
+Current implementation commits on `ESPressio-WiFi/primitives_redesign`:
 
-### D10-11 — Lua State read/inspection — CLOSED/GREEN
+- `9411436244787d6332686d054b2d1c3f25448dbf` — `WiFiWorker` migrated from `PrecisionThread<...>` to `ThreadWith<Precision<8>>`; `OnLoop()` returns `ThreadWorkDisposition::IdleReady`; period maps to `SetCadencePeriod`; execution budget maps to `SetIterationExecutionBudget`; manager work signal maps to Precision `Bump()`; no private scheduler/wake/task is introduced.
+- `727880476d13c8c7c3ae635cdd1521d2babe6136` — added `tests/test_wifi_worker.cpp`, proving final capability composition, one root execution context/common work signal, immediate first application iteration, runtime tuning/Bump servicing and clean Shutdown.
+- `9aa7d5ace928fe71b206a741e53c4d6a183880ec` — wired the worker contract into host CTest.
+- `48a2bca844245cf08e5b4e3ff2c603f865bfa914` — CI rejects `PrecisionThread`, `PrecisionThreadTraits`, `SetDesiredIterationPeriod` and `Iterate()` in production WiFiWorker, requires final `ThreadWith<Precision<8>>` plus execution-budget mapping, and compiles the final WiFiWorker surface in the ESP32 consumer.
 
-Provider checkpoint: State `25637a7555e3a03f1d709bd8e37340bc4d545b6e`. Lua exact closure tip `e09f01755b8ebf4094f66270e7cce13a6399c06b`.
-
-Lua added opt-in `ESPressio_LuaState.hpp` over the final immutable `StateTypeDescriptor`, frozen TypeDirectory and family-owned `ReadDynamicState()`. An application-owned `ILuaStateAuthorizer` is required before family read. A compile-time fixed-capacity result owns one bounded DirectBinary/CBOR/JSON representation long enough to push it into Lua; successful results expose exact immutable `TruthTime` as high/low 32-bit nanoseconds plus reliability. No State owner, mutation, convergence/session, retry, routing, transport or worker capability is exposed.
-
-Validation uses a real final State runtime and typed owners owned only by the test application. It proves no-value, current value `42`, canonical DirectBinary/CBOR/JSON bytes, exact `TruthTime`, authorization-before-read, non-Serializable/local State rejection, invalid index, finite output capacity and unchanged authoritative typed State after all Lua reads. The focused workflow guard rejects mutation/lifecycle names from production Lua State integration.
-
-Initial focused failures were test-fixture-only: a guessed generic Serializable helper, then the wrong DirectBinary helper name, then an invalid assumption that strict Lua modules return `nil` for unexposed members. No State provider/runtime semantic change was made. Final exact-tip `Lua State Inspection Contract` run `34847762946` SUCCESS and exact-tip aggregate `Lua bindings` run `34847763087` SUCCESS. Lua core manifest remains System-only; no version change was made.
-
-### D10-12 — Serial final Primitive-family tooling — CLOSED/GREEN
-
-Serial remains operator/terminal tooling, not a device-device Primitive transport. Its core manifest remains version `0.8.1` with only System + Logging dependencies; Command/Event/State integrations remain opt-in surfaces.
-
-The predecessor family architecture was removed rather than shimmed. Command console/monitor now use frozen TypeDirectory + final Command descriptors and family-owned dynamic submission, including requester-required rejection where the generic console has no requester. Event console/monitor use frozen TypeDirectory + final Event descriptors and family-owned dynamic dispatch. State monitor performs descriptor-driven read/inspection only and never obtains owner/mutation/convergence capability. Operator P3 input is bounded before family decode/construction and action authorization remains application-owned.
-
-Stale Command regression fixtures were migrated from `CommandRegistry`, `CommandRequestEnvelope`, `InboundCommandEvent` and response-route registry assumptions to the final descriptor/P3 contract. Obsolete Event transport formatter/payload machinery, predecessor `EventTransportManager` stubs and old Command Event stubs were removed with no compatibility layer. The orphaned production `ESPressio_SerialTypes.hpp` transport-oriented Event monitor configuration (`EventMonitorMode`, payload/transport/hop/acceptance controls) was also removed and guarded against reintroduction.
-
-Exact closure Serial tip: `a86612d78b57501870195c9d954d8993a8f25f97`. Exact-tip `Command Console Final Contract` run `34859791114` SUCCESS. The migrated family targets also compile in aggregate Host Tests; that aggregate build stops only on the independently-owned Logging/Timing mismatch reserved for D10-16.
-
-### D10-13 — Serial final non-family diagnostics seams — CLOSED/GREEN
-
-Serial Thread/Timing/provider diagnostics now consume final caller-owned seams instead of predecessor managers/workers/transports. Thread diagnostics consume final `IThread` snapshots; Timing diagnostics consume the final Timing quality/synchronization model; ESP-NOW diagnostics inspect the final Radio provider; Sockets diagnostics inspect final A2 transport/session state; WiFi diagnostics use the final WiFi observer/state surface.
-
-`DiagnosticMonitor` intentionally does not aggregate D10-12 family tooling: the family tooling uses Serial's platform-neutral byte-output writer while retained Arduino-facing Thread/Timing/provider monitors consume global `::Print`. No compatibility output bridge or duplicate lifecycle owner was introduced. `DiagnosticMonitor` therefore aggregates only compatible final non-family provider diagnostics. Predecessor `ThreadManager`, `ESPNowTransport`, `SocketWorker`, WiFi EventThread/EventTransport ownership paths are structurally rejected.
-
-Exact-tip `Final Diagnostics Contract` run `34859791169` SUCCESS at Serial `a86612d78b57501870195c9d954d8993a8f25f97`, including host aggregate compile, ownership guards and ESP32 WiFi monitor compile.
-
-Aggregate Serial Host Tests run `34859791064` remains RED solely because `ESPressio-Logging` tip `50bf7ed76698152c97651a75a28a760bb33dcccb` still consumes removed Timing symbols (`ClockSynchronizationState` and `.State` on the final `ClockSynchronizationStatus`). Command/Event/family tooling and WiFi monitor targets build successfully in that same run. This is explicit D10-16 Logging migration debt, not a D10-12/D10-13 failure. Serializable warning-as-error noise was subsequently addressed in D10-14 downstream validation at Serializable `512b610eab89724deca680b7e62162e33b5f660f`.
-
-Documentation/examples were classified, not silently treated as final evidence: Serial README and `examples/EventMonitor/EventMonitor.ino` still describe predecessor Event transport/registry surfaces and are reserved for D10-20 documentation/example closure.
-
-## D10-14 — WiFi final Command/Event integration — ACTIVE
-
-D10-14 migrates WiFi Command/Event integrations onto the final family APIs while keeping WiFi-specific configuration, persistence and hardware/platform semantics WiFi-owned.
-
-The source migration is materially implemented. WiFi uses final typed Serializable Commands + `Command::Runtime`; WiFi Event dispatch uses typed final `TryDispatch` with family-owned admission. `WiFiWorker` remains deliberately untouched for separate D10-15 scope.
-
-D10-14 fixes landed during exact-tip validation:
-
-- Added an explicit `WiFiCommandResponse` outcome constructor after CRTP Serializable inheritance made the previous aggregate-style construction invalid.
-- Fully qualified Command family metadata in the WiFi typed Command declarations so nested WiFi command names cannot shadow the `::ESPressio::Command` namespace.
-- Serializable `primitives_redesign` exact tip `512b610eab89724deca680b7e62162e33b5f660f` (`Clarify migration control flow`) rewrites condensed migration control flow that triggered `-Wmisleading-indentation` under WiFi host warnings-as-errors validation.
-- WiFi `primitives_redesign` exact tip `da39424ae80195766a8a6ad6a5ab626927618238` (`Complete WiFi Event runtime surface`) includes the complete final Event provider/runtime surface required when typed `TryDispatch` instantiates `EventTypeRuntime<TEvent>`; it does not invent a WiFi-local Event runtime or compatibility facade.
-
-Exact-tip validation evidence at WiFi `da39424ae80195766a8a6ad6a5ab626927618238`:
-
-- WiFi architecture-contract run `34931486431`.
-- `esp32-family-surface` job `104260438988`: **SUCCESS**. The final WiFi Event + Command family surface compiles on ESP32 at the exact WiFi head.
-- `host-contracts` job `104260439076`: **FAILURE**, specifically in the `Build host contracts` step. Predecessor-architecture rejection and host configuration both succeed. The exact remaining compiler diagnostic is the current D10-14 blocker and must be recovered/fixed before closure.
-
-D10-14 is therefore **NOT CLOSED** yet. Its completion gate remains: exact same WiFi head (or its compiler-fix successor) must pass both host contracts and ESP32 family-surface validation. D10-15 remains mutation-blocked until that gate is green.
+A WiFi workflow run was automatically started for source commit `9411436244787d6332686d054b2d1c3f25448dbf` as run `34937251796`; later commits trigger successor runs and the latest exact branch-tip run is the D10-15 closure authority. Do not close D10-15 until the latest WiFi head passes both host contracts (including `ESPressioWiFiWorkerContract`) and ESP32 final WiFi Thread/Event/Command compilation.
 
 ### Immediate next action
 
-Recover the exact compiler path/line from host job `104260439076` (or its check-run annotations), patch only the compiler-confirmed final-contract defect, rerun exact-tip validation, then record D10-14 CLOSED/GREEN and proceed immediately to D10-15 WiFiWorker migration away from `Threads::PrecisionThread`.
+1. Re-query the exact current WiFi head (expected `48a2bca844245cf08e5b4e3ff2c603f865bfa914` unless externally advanced).
+2. Inspect the latest WiFi Actions run for that exact head.
+3. Fix only compiler/test defects confirmed by the final contracts; do not add a `PrecisionThread` compatibility layer.
+4. Once host + ESP32 are green, record D10-15 CLOSED/GREEN here and proceed immediately to D10-16 Logging bounded diagnostics validation.
+
+## Known D10-16 debt
+
+`ESPressio-Logging/primitives_redesign` tip `50bf7ed76698152c97651a75a28a760bb33dcccb` still consumes removed Timing symbols (`ClockSynchronizationState` and `.State` on final `ClockSynchronizationStatus`). This is explicitly reserved for D10-16 and must not be repaired by resurrecting predecessor Timing APIs.
