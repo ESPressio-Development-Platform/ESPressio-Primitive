@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Tranche 11 V11-03: audit live instructional/example/CI surfaces.
 
-V11-02 owns production source/include eradication.  This gate deliberately targets
+V11-02 owns production source/include eradication. This gate deliberately targets
 examples/demos, live README/docs/wiki/API maps and generated CI fixture code.
 Historical CHANGELOGs and tranche/history reports are not live API instructions.
 
-For Markdown we validate fenced and inline code (the material users can copy) rather
-than rejecting prose which accurately explains that a predecessor API was removed.
-For workflows we reject stale coordinated branch references and legacy identifiers in
-fixture-like C/C++ lines, while allowing explicit anti-legacy grep/assert guards.
+For Markdown we validate fenced code and positive instructional inline API spelling.
+Inline identifiers inside explicit removal/negative architecture prose are allowed: a
+README should be able to say that `PrecisionThread` no longer exists without that
+statement being mistaken for a usage example.
 """
 
 from __future__ import annotations
@@ -49,6 +49,12 @@ WORKFLOW_SUFFIXES = {".yml", ".yaml"}
 HISTORICAL_NAME_PARTS = (
     "changelog", "history", "tranche_handoff", "tranche_", "implementation_report",
     "closure", "resource_accounting", "migration_report",
+)
+
+NEGATIVE_ARCHITECTURE_PHRASES = (
+    "no ", "no longer", "does not", "doesn't", "do not", "don't", "not retained",
+    "not exist", "removed", "removal", "predecessor", "legacy", "obsolete", "replaced",
+    "without ", "rather than", "instead of",
 )
 
 
@@ -117,14 +123,23 @@ def live_markdown(path: Path, repo: Path) -> bool:
     )
 
 
-def markdown_code(text: str) -> str:
+def markdown_instructional_code(text: str) -> str:
     pieces: list[str] = []
-    # Fenced code blocks, including language-less blocks.
+    # Fenced blocks are always copyable/instructional surfaces.
     for match in re.finditer(r"```[^\n]*\n(.*?)```", text, flags=re.DOTALL):
         pieces.append(match.group(1))
-    # Inline code is live spelling/API guidance too.
-    for match in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", text):
-        pieces.append(match.group(1))
+
+    # Inline API spelling is instructional unless its containing line explicitly says
+    # that the API is absent/removed/replaced.  Preserve blank placeholders so line
+    # numbers remain reasonably diagnostic.
+    for line in text.splitlines():
+        lower = line.lower()
+        negative = any(phrase in lower for phrase in NEGATIVE_ARCHITECTURE_PHRASES)
+        if negative:
+            pieces.append("")
+            continue
+        inline = [m.group(1) for m in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", line)]
+        pieces.append(" ".join(inline))
     return "\n".join(pieces)
 
 
@@ -145,7 +160,6 @@ def report_identifiers(text: str, label: str, errors: list[str]) -> None:
 def scan_repo(repo: Path, root: Path, errors: list[str]) -> tuple[int, int, int]:
     example_files = markdown_files = workflow_files = 0
 
-    # Examples/demos are executable instructional surfaces; scan code after comments.
     for tree_name in ("examples", "demos", "demo"):
         tree = repo / tree_name
         if not tree.exists():
@@ -162,7 +176,6 @@ def scan_repo(repo: Path, root: Path, errors: list[str]) -> tuple[int, int, int]
             for match in STALE_BRANCH.finditer(text):
                 errors.append(f"{path.relative_to(root)}: stale coordinated branch #{match.group(1)}")
 
-    # README/docs/wiki/API-map Markdown: only copyable code/API spelling is forbidden.
     for path in repo.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in MARKDOWN_SUFFIXES or not live_markdown(path, repo):
             continue
@@ -171,13 +184,10 @@ def scan_repo(repo: Path, root: Path, errors: list[str]) -> tuple[int, int, int]
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        code = markdown_code(text)
-        report_identifiers(code, str(path.relative_to(root)), errors)
+        report_identifiers(markdown_instructional_code(text), str(path.relative_to(root)), errors)
         for match in STALE_BRANCH.finditer(text):
             errors.append(f"{path.relative_to(root)}: stale coordinated branch #{match.group(1)}")
 
-    # CI may generate compile fixtures.  Stale branch refs are always invalid; legacy
-    # identifier hits are rejected on fixture-like lines but explicit guards may name them.
     workflows = repo / ".github" / "workflows"
     if workflows.exists():
         for path in workflows.rglob("*"):
