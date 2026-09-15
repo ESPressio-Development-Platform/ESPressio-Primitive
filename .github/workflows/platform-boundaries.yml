@@ -21,7 +21,7 @@ jobs:
         with:
           path: validator
 
-      - name: Checkout current redesign graph
+      - name: Checkout current public redesign graph
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -30,7 +30,7 @@ jobs:
           mkdir -p repos
           repositories=(
             Primitive System Serializable Persistence Task Timing Threads Event Command State
-            Adapters Radio Mesh MeshAdapters RadioAdapters ESP-Now Sockets Serial WiFi ESP32
+            Adapters Radio Mesh MeshAdapters RadioAdapters Sockets Serial WiFi ESP32
             Logging Security Units Web Lua NRF24
           )
           for repository in "${repositories[@]}"; do
@@ -39,6 +39,7 @@ jobs:
               "https://x-access-token:${GH_TOKEN}@github.com/ESPressio-Development-Platform/ESPressio-${repository}.git" \
               "repos/ESPressio-${repository}"
           done
+          echo "ESPressio-ESP-Now is private and is validated by its own repository-local redesign-boundary workflow."
 
       - name: Validate locked dependency and migration boundaries
         run: python validator/tools/validate_platform_boundaries.py repos
