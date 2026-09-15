@@ -1,8 +1,9 @@
 # Structural Tranche 11 — Validation Evidence
 
 Date: 2026-09-15
-Reference time supplied by the user: 09:38 Europe/Prague
-Status: **V11-01 exact-tip freeze CLOSED; V11-02 branch-specific eradication ACTIVE**
+Initial Tranche-11 reference time supplied by the user: 09:38 Europe/Prague
+Latest continuation reference time supplied by the user: 10:44 Europe/Prague
+Status: **V11-01 and V11-02 CLOSED/GREEN; V11-03 ACTIVE**
 
 This file records validation evidence for Structural Tranche 11 of the Primitive Platform Redesign. The architecture and completion gates remain defined by `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102`; this file does not alter those contracts.
 
@@ -14,7 +15,7 @@ The active validation graph is the public `primitives_redesign` graph listed bel
 
 No release preparation, version change, tag, `main` reintegration or release publication is authorized by this validation tranche.
 
-# V11-01 — Exact-tip freeze
+# V11-01 — Exact-tip freeze — CLOSED
 
 The following exact `primitives_redesign` tips are the frozen active public graph at the start of Tranche 11 validation:
 
@@ -71,11 +72,37 @@ Observed branches relevant to current validation:
 
 The latter is recorded because it is the existing Mesh-lab working lineage; recording it does not authorize promotion to the redesign source branch. V11-03/V11-15 will classify the live Lab fixtures against the frozen redesign contracts.
 
+# V11-02 — Production source/include eradication — CLOSED/GREEN
+
+V11-02 is deliberately separate from the examples/documentation scan in V11-03. Commit `c01c4a37a14249ca5caac945804c40e92bd9a1fe` added `tools/validate_v11_source_eradication.py`; commit `16934b01949aa0c52ed56d831999dfec33e37ba7` wired it into the public redesign-graph workflow.
+
+The gate:
+
+- checks only `src/` and `include/` production/public C/C++ source surfaces;
+- strips C/C++ comments before matching so explanatory architecture comments may accurately name removed APIs;
+- checks all 26 active redesign repositories and omits deprecated out-of-scope functionality;
+- rejects the removed Precision/Event/Command/State/Radio/Thread predecessor manager/worker hierarchy, including `PrecisionThread`, `EventTransportManager`, `EventManager`, `CommandRegistry`, `RemoteStateObserverThread`, `RadioWorker`, `ThreadManager`, `ThreadTerminationDispatcher`, `DesiredIterationPeriod`, and related removed identifiers.
+
+Exact validation evidence:
+
+- workflow: `Platform Redesign Boundaries`
+- run: `34948846099`
+- job: `104314675007`
+- head: `16934b01949aa0c52ed56d831999dfec33e37ba7`
+- result: **SUCCESS**
+- production/public files scanned: **710** across **26** repositories
+- existing locked-DAG guard: SUCCESS
+- V11-02 production-source eradication: SUCCESS
+- final dynamic-tooling contracts: SUCCESS
+- real multi-capability `ThreadWith` composition: SUCCESS
+
+No production remediation was required by V11-02.
+
 # V11 continuation
 
-- V11-01 exact-tip freeze: **CLOSED**
-- V11-02 branch-specific removed-symbol/source/include scan: **ACTIVE**
-- V11-03 examples/demos/Labs/wiki/README/generated-CI-fixture scan: pending
+- V11-01 exact-tip freeze: **CLOSED/GREEN**
+- V11-02 branch-specific removed-symbol/source/include scan: **CLOSED/GREEN**
+- V11-03 examples/demos/Labs/wiki/README/generated-CI-fixture scan: **ACTIVE**
 - V11-04 through V11-20: pending in the authoritative order
 
-Any repair commit made during Tranche 11 necessarily advances a branch beyond this immutable V11-01 baseline. Such movement must be recorded as validation remediation, not silently folded back into the original freeze.
+Any repair commit made during Tranche 11 necessarily advances a branch beyond the immutable V11-01 baseline. Such movement must be recorded as validation remediation, not silently folded back into the original freeze.
