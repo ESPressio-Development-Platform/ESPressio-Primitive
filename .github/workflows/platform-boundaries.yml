@@ -55,6 +55,9 @@ jobs:
       - name: V11-05 validate forbidden edges and redesign branch guards
         run: python validator/tools/validate_v11_forbidden_edges.py repos
 
+      - name: V11-06 classify every current test and validation artifact
+        run: python validator/tools/validate_v11_test_classification.py repos
+
       - name: Validate final dynamic tooling contracts
         run: python validator/tools/validate_dynamic_tooling.py repos
 
