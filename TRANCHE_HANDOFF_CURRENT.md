@@ -2,7 +2,7 @@
 
 Date: 2026-09-15
 Continuation state: structural Tranches 2–9 CLOSED; Tranche 10 ACTIVE at D10-17
-Latest user time reference: 08:24 Europe/Prague
+Latest user time reference: 08:51 Europe/Prague
 
 This is the live continuation card. `ESPressio_Primitive_Platform_Redesign_Architecture_Handoff_Revision_102` remains authoritative for CLOSED/LOCKED architecture, governance, dependency order, tranche gates and historical decisions. `TRANCHE_8_CLOSURE.md`, `TRANCHE_9_RESOURCE_ACCOUNTING.md` and `TRANCHE_9_CLOSURE.md` remain formal closure evidence. Live source branch tips are implementation truth and MUST be re-queried before every mutation.
 
@@ -139,15 +139,34 @@ D10-16 is therefore **CLOSED/GREEN**.
 
 ## D10-17 — ESP32 non-Radio downstream cleanup — ACTIVE
 
-Current baseline before D10-17 mutation must be re-queried. Last observed `ESPressio-ESP32/primitives_redesign` head was `53d67b9f9099094bd8818a518567578fede1c941`.
+D10-17 began from exact `ESPressio-ESP32/primitives_redesign` head `53d67b9f9099094bd8818a518567578fede1c941`. Manifest audit confirmed direct final redesign dependencies on System, Radio, Mesh, WiFi and Persistence; source inventory separated Radio concrete paths from non-Radio System/Persistence/WiFi/platform paths.
 
-Scope is explicitly **non-Radio** downstream cleanup. Do not reopen or restructure the Radio/R3 architecture under this item. Audit the ESP32 manifest first, then concrete System/Persistence/Timing/WiFi/platform glue, tests, examples and workflows for stale provider contracts or removed Thread/Timing/Event/Command/State APIs. Consume final provider contracts; do not add compatibility façades.
+Production audit of the non-Radio concrete providers found no confirmed predecessor provider API requiring semantic redesign. The existing CI, however, only compiled `examples/ProviderSmoke`, whose consumer is explicitly Radio-focused. D10-17 therefore added an independent non-Radio compile detector rather than treating the Radio smoke build as evidence for unrelated concrete providers.
+
+Implementation commits on `ESPressio-ESP32/primitives_redesign`:
+
+- `f03c06bab16810e5054ae1eeaa98aaf35b5d0766` — added `examples/NonRadioProviderSmoke/platformio.ini` pinned to current `primitives_redesign` provider/consumer branches without a direct Radio dependency.
+- `7eb6ef442bcc65fd75869fb1e818385c90b3583e` — added compile contract covering final ESP32 System memory/execution/synchronization/queue/clock/GPIO/entropy providers, Arduino byte-stream adapters, Persistence backends and concrete WiFi platform inheritance.
+- `1b19c94a85aaac6fdf71935a78fbd7a0a4d4333f` — added independent `esp32-non-radio-provider` CI job plus predecessor-API rejection guard, while retaining the existing managed Radio provider job unchanged.
+
+Exact validation run `34938975315` at ESP32 head `1b19c94a85aaac6fdf71935a78fbd7a0a4d4333f` is currently active:
+
+- `esp32-non-radio-provider` job `104283038964`: anti-legacy scan **PASSED**; final non-Radio PlatformIO build currently running.
+- `esp32-provider` job `104283039290`: existing managed Radio provider smoke build currently running.
+
+Read-only D10-18 inventory performed while CI runs:
+
+- `ESPressio-Units/primitives_redesign` exact observed head `6c5d5a20cff38d50fc0dbc71ad7ec6573ddd722b`.
+- `library.json` declares `dependencies: []`.
+- core `ESPressio_Unit.hpp` consumes only Arduino/standard headers plus Units-internal headers.
+- optional `ESPressio_Unit_Serializable.hpp` is deliberately separated from core, explicitly requires `ESPressio-Serializable` only when that tier is included, and does not make Serializable a core manifest dependency.
+- host CMake tests include only Units source + Arduino test stub and therefore already form a dependency-neutral core compile surface.
+- `.github/workflows/dependency-refresh-tests.yml` currently does **not** trigger on `primitives_redesign`; D10-18 should correct that and add an explicit dependency-neutrality guard before claiming closure.
 
 ### Immediate next action
 
-1. Re-query the exact ESP32 `primitives_redesign` head and manifest.
-2. Inventory non-Radio production/test/workflow paths separately from Radio implementation paths.
-3. Search for stale final-provider API references and dependency drift, classifying every hit before mutation.
-4. Apply only confirmed non-Radio migration fixes and add anti-regression validation.
-5. Validate exact ESP32 head and relevant downstream consumers before closing D10-17.
-6. Record closure here and proceed directly to D10-18 Units dependency-neutral proof.
+1. Wait only for the already-running ESP32 exact-head jobs; do not mutate another tranche item while D10-17 remains unresolved.
+2. If either ESP32 job fails, recover the exact compiler failure and patch only the confirmed non-Radio migration defect.
+3. If both jobs succeed, record D10-17 **CLOSED/GREEN** with exact job evidence.
+4. Re-query Units exact head and workflow blob, then start D10-18 by activating `primitives_redesign` CI and adding a guard proving core manifest/source dependency neutrality while preserving the explicit optional Serializable tier.
+5. Validate Units standalone host tests and optional Serializable integration, record D10-18 closure, then proceed directly to D10-19.
