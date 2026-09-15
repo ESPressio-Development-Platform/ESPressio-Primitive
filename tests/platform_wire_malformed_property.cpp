@@ -241,9 +241,7 @@ void ValidateStateWire() {
     RejectEveryTruncation(commonWire, decodeCommon);
     auto badCommon = commonWire;
     badCommon[2] ^= 0x01U;
-    S::StateControlWireHeader commonOutput{};
-    assert(S::DecodeStateControl(badCommon.data(), badCommon.size(), commonOutput).Status ==
-           S::StateWireStatus::UnsupportedProtocol);
+    assert(!decodeCommon(badCommon.data(), badCommon.size()));
     badCommon = commonWire;
     badCommon[4] = 0U;
     assert(!decodeCommon(badCommon.data(), badCommon.size()));
@@ -265,9 +263,7 @@ void ValidateStateWire() {
     RejectEveryTruncation(snapshotWire, decodeSnapshot);
     auto badSnapshot = snapshotWire;
     badSnapshot[2] ^= 0x01U;
-    S::StateSnapshotControlWireHeader snapshotOutput{};
-    assert(S::DecodeStateSnapshotControlHeader(badSnapshot.data(), badSnapshot.size(), snapshotOutput).Status ==
-           S::StateWireStatus::UnsupportedProtocol);
+    assert(!decodeSnapshot(badSnapshot.data(), badSnapshot.size()));
     badSnapshot = snapshotWire;
     badSnapshot[4] = static_cast<std::uint8_t>(S::StateMessageKind::UnsubscribeRequest);
     assert(!decodeSnapshot(badSnapshot.data(), badSnapshot.size()));
@@ -279,6 +275,7 @@ void ValidateStateWire() {
     assert(!decodeSnapshot(badSnapshot.data(), badSnapshot.size()));
     badSnapshot = snapshotWire;
     badSnapshot[74] ^= 0x01U;
+    S::StateSnapshotControlWireHeader snapshotOutput{};
     assert(S::DecodeStateSnapshotControlHeader(badSnapshot.data(), badSnapshot.size(), snapshotOutput).Status ==
            S::StateWireStatus::InvalidLength);
     ExerciseDeterministicMutations(snapshotWire, decodeSnapshot);
@@ -296,9 +293,7 @@ void ValidateStateWire() {
     RejectEveryTruncation(acceptanceWire, decodeAcceptance);
     auto badAcceptance = acceptanceWire;
     badAcceptance[2] ^= 0x01U;
-    S::StateAcceptanceControlWireHeader acceptanceOutput{};
-    assert(S::DecodeStateAcceptanceControl(badAcceptance.data(), badAcceptance.size(), acceptanceOutput).Status ==
-           S::StateWireStatus::UnsupportedProtocol);
+    assert(!decodeAcceptance(badAcceptance.data(), badAcceptance.size()));
     badAcceptance = acceptanceWire;
     badAcceptance[4] = static_cast<std::uint8_t>(S::StateMessageKind::SubscribeAccepted);
     assert(!decodeAcceptance(badAcceptance.data(), badAcceptance.size()));
