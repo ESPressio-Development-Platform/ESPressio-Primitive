@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Tranche 11 V11-04: validate the locked final Primitive-platform dependency DAG.
 
-The architecture handoff defines exact direct ESPressio dependency sets for the
-redesigned core/family/adapter repositories below.  This gate treats package
-manifests as executable architecture: missing manifests, missing edges and extra
-edges are all failures.  Integration/tooling repositories whose complete direct
-sets are not locked by this table remain covered by the separate V11-05
-forbidden-edge/branch guard.
+Package manifests are authoritative where they exist. Header-only/interface adapter
+repositories that deliberately have no package manifest are validated from direct
+public-source includes resolved against uniquely-owned headers in the checked-out
+redesign graph. This avoids inventing packaging metadata merely to represent a locked
+architectural edge.
 """
-
 from __future__ import annotations
 
 import json
+import re
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 LOCKED_DAG: dict[str, set[str]] = {
@@ -25,9 +25,7 @@ LOCKED_DAG: dict[str, set[str]] = {
     "Threads": {"System", "Task", "Timing", "Units", "Observable"},
     "Adapters": {"System", "Primitive", "Task"},
     "Event": {"System", "Primitive", "Task", "Threads", "Timing", "Serializable"},
-    "Command": {
-        "System", "Primitive", "Task", "Threads", "Timing", "Serializable", "Persistence"
-    },
+    "Command": {"System", "Primitive", "Task", "Threads", "Timing", "Serializable", "Persistence"},
     "State": {"System", "Primitive", "Threads", "Timing", "Serializable", "Persistence"},
     "Radio": {"System", "Task", "Timing", "Units"},
     "RadioAdapters": {"Radio", "Adapters", "Primitive", "Event", "Command", "State"},
@@ -36,45 +34,93 @@ LOCKED_DAG: dict[str, set[str]] = {
     "Units": set(),
 }
 
+HEADER_SUFFIXES = {".h", ".hh", ".hpp", ".hxx"}
+SOURCE_SUFFIXES = HEADER_SUFFIXES | {".c", ".cc", ".cpp", ".cxx", ".ino", ".ipp", ".tpp"}
+INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', re.MULTILINE)
+
 
 def normalize(name: str) -> str:
     prefix = "ESPressio-"
     return name[len(prefix):] if name.startswith(prefix) else name
 
 
-def direct_dependencies(manifest: Path) -> set[str]:
+def manifest_dependencies(manifest: Path) -> set[str]:
     data = json.loads(manifest.read_text(encoding="utf-8"))
     raw = data.get("dependencies", [])
     if isinstance(raw, dict):
         values = raw.keys()
     elif isinstance(raw, list):
-        values = (
-            item.get("name", "") if isinstance(item, dict) else str(item)
-            for item in raw
-        )
+        values = (item.get("name", "") if isinstance(item, dict) else str(item) for item in raw)
     else:
         raise ValueError(f"unsupported dependencies value {type(raw).__name__}")
     return {normalize(value) for value in values if value}
 
 
+def build_header_index(root: Path) -> dict[str, set[str]]:
+    owners: dict[str, set[str]] = defaultdict(set)
+    for repo in root.glob("ESPressio-*"):
+        if not repo.is_dir():
+            continue
+        source = repo / "src"
+        if not source.exists():
+            continue
+        owner = normalize(repo.name)
+        for path in source.rglob("*"):
+            if path.is_file() and path.suffix.lower() in HEADER_SUFFIXES:
+                owners[path.name].add(owner)
+    return owners
+
+
+def include_dependencies(repo: Path, owners: dict[str, set[str]]) -> set[str]:
+    current = normalize(repo.name)
+    dependencies: set[str] = set()
+    source = repo / "src"
+    if not source.exists():
+        return dependencies
+    for path in source.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in SOURCE_SUFFIXES:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for match in INCLUDE.finditer(text):
+            header = Path(match.group(1)).name
+            candidates = owners.get(header, set())
+            if len(candidates) != 1:
+                continue
+            owner = next(iter(candidates))
+            if owner != current:
+                dependencies.add(owner)
+    return dependencies
+
+
 def main() -> int:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     errors: list[str] = []
+    owners = build_header_index(root)
+    manifest_backed = 0
+    include_backed = 0
 
     for name, expected in LOCKED_DAG.items():
         repo = root / f"ESPressio-{name}"
-        manifest = repo / "library.json"
         if not repo.exists():
             errors.append(f"missing checked-out redesign repository: {repo.name}")
             continue
-        if not manifest.exists():
-            errors.append(f"{repo.name}: locked DAG repository has no library.json manifest")
-            continue
+        manifest = repo / "library.json"
         try:
-            actual = direct_dependencies(manifest)
+            if manifest.exists():
+                actual = manifest_dependencies(manifest)
+                evidence = "library.json"
+                manifest_backed += 1
+            else:
+                actual = include_dependencies(repo, owners)
+                evidence = "direct public includes"
+                include_backed += 1
         except Exception as exc:
-            errors.append(f"{repo.name}/library.json: {exc}")
+            errors.append(f"{repo.name}: dependency resolution failed: {exc}")
             continue
+
         if actual != expected:
             missing = sorted(expected - actual)
             extra = sorted(actual - expected)
@@ -85,7 +131,7 @@ def main() -> int:
                 details.append(f"extra={extra}")
             errors.append(
                 f"{repo.name}: expected direct ESPressio dependencies {sorted(expected)}, "
-                f"found {sorted(actual)} ({', '.join(details)})"
+                f"found {sorted(actual)} via {evidence} ({', '.join(details)})"
             )
 
     if errors:
@@ -97,7 +143,8 @@ def main() -> int:
     edge_count = sum(len(values) for values in LOCKED_DAG.values())
     print(
         f"V11-04 exact dependency DAG passed: {len(LOCKED_DAG)} locked repositories, "
-        f"{edge_count} exact direct ESPressio edges."
+        f"{edge_count} exact direct ESPressio edges; {manifest_backed} manifest-backed, "
+        f"{include_backed} public-include-backed."
     )
     return 0
 
